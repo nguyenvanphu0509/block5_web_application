@@ -1,0 +1,3 @@
+<div class="admin-top"><div><span class="eyebrow">WORKSPACE · QUẢN TRỊ DEMO</span><h1><%= title %></h1></div><a class="button outline small" href="/dishes">Xem trang khách ↗</a></div>
+<nav class="admin-nav" aria-label="Đối tượng quản trị"><% Object.entries(resources).forEach(([key, item]) => { %><a class="<%= resource === key ? 'active' : '' %>" href="/admin/<%= key %>" <%= resource === key ? 'aria-current=page' : '' %>><span aria-hidden="true"><%= item.icon %></span> <%= item.label %></a><% }) %></nav>
+<p class="admin-note">Khu vực demo local, chưa có xác thực tài khoản. Dữ liệu đầu bếp và giá món là minh họa.</p>

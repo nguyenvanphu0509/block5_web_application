@@ -1,0 +1,8 @@
+<%- include('../partials/head') %>
+<main id="main" class="shell page-main"><div class="page-heading"><span class="section-badge">THE SAIGON TABLE</span><h1>Một thực đơn.<br><em>Muôn vàn cảm hứng.</em></h1><p>Món ăn và giá minh họa cho bài tập, không phải thực đơn nhà hàng thật.</p></div>
+<form class="search-form" id="search" action="/dishes" method="GET"><label class="sr-only" for="dish-search">Tìm món theo tên</label><input id="dish-search" name="q" value="<%= q %>" maxlength="120" placeholder="Tìm hương vị bạn yêu thích…"><button class="button small" type="submit">Tìm món ↗</button></form>
+<div class="catalog-toolbar"><span><%= dishes.length %> món <%= q ? `cho “${q}”` : 'trong thực đơn' %></span><a href="/dishes">Tất cả món ăn ↗</a></div>
+<% if (!dishes.length) { %><div class="empty-state"><span class="feature-icon">✳</span><h2>Chưa có món phù hợp</h2><p>Thử tên khác, hoặc quay lại thực đơn để khám phá thêm.</p><a class="button outline" href="/dishes">Xem tất cả món</a></div><% } %>
+<div class="dish-grid"><% dishes.forEach(dish => { %><%- include('../partials/dish-card', { dish }) %><% }) %></div>
+<p class="source-note">Ảnh là minh họa tự tạo, không phải ảnh chụp món thực tế. Giá là dữ liệu demo.</p></main>
+<%- include('../partials/footer') %>

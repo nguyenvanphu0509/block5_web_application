@@ -1,0 +1,4 @@
+<article class="dish-card">
+  <a class="dish-image illustration image-fallback" href="/dishes/<%= dish.id %>"><img src="<%= dish.imagePath || '/images/noodles.svg' %>" alt="Minh họa cho <%= dish.name %>" width="600" height="600" loading="lazy"><span class="image-caption">Minh họa</span></a>
+  <div class="dish-card-content"><div class="eyebrow"><%= dish.category || 'Ẩm thực Việt' %></div><h2><a href="/dishes/<%= dish.id %>"><%= dish.name %></a></h2><p class="card-description"><%= dish.description || 'Khám phá thêm về món ăn này.' %></p><div class="card-bottom"><strong><%= money(dish.price) %></strong><span class="availability <%= dish.available ? '' : 'unavailable' %>"><span class="status-dot"></span><%= dish.available ? 'Đang phục vụ' : 'Tạm hết' %></span></div></div>
+</article>
