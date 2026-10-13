@@ -16,7 +16,8 @@
     "db:import:michelin": "node scripts/import-michelin.js",
     "db:check": "node scripts/check-db.js",
     "test": "node --test tests/*.test.js",
-    "test:db": "node --test tests/database.integration.js"
+    "test:db": "node --test tests/database.integration.js",
+    "db:migrate:catalog": "node scripts/migrate-restaurants.js"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",

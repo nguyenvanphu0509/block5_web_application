@@ -4,4 +4,5 @@ node_modules/
 !.env.example
 coverage/
 artifacts/
+.local-backups/
 .DS_Store

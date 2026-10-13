@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { createRoutes } from './routes/index.js';
 import { securityHeaders, checkOrigin } from './middleware/security.js';
 import { money, restaurantPrice, dateLabel } from './lib/presentation.js';
+import { restaurantPhoto } from './lib/restaurant-photos.js';
 
 export function createApp({ db, preview = false, origin = 'http://localhost:3000', logger = console } = {}) {
   const app = express();
@@ -11,7 +12,7 @@ export function createApp({ db, preview = false, origin = 'http://localhost:3000
   app.set('view engine', 'ejs');
   app.set('views', fileURLToPath(new URL('./views/', import.meta.url)));
   app.set('query parser', 'extended');
-  app.locals = { ...app.locals, money, restaurantPrice, dateLabel, preview };
+  app.locals = { ...app.locals, money, restaurantPrice, dateLabel, restaurantPhoto, preview };
   // Error pages also need locals when parsing/security rejects before routing.
   app.use((req, res, next) => { res.locals.currentPath = req.path; next(); });
   app.use(securityHeaders);

@@ -1,0 +1,17 @@
+<fieldset class="dish-image-editor field" data-image-editor data-origins="<%= JSON.stringify(allowedImageOrigins) %>" data-current="<%= previewImage %>" data-fallback="<%= resource === 'restaurants' ? '/images/restaurant.svg' : '/images/greens.svg' %>">
+<legend>Ảnh <%= resource === 'restaurants' ? 'nhà hàng' : 'món ăn' %> <span>Không bắt buộc</span></legend>
+<p class="image-intro"><%= resource === 'restaurants' ? 'Giới thiệu không gian quán qua một bức ảnh đẹp.' : 'Một bức ảnh đẹp giúp hương vị có câu chuyện riêng.' %></p>
+<div class="image-methods" role="group" aria-label="Cách thêm ảnh">
+<label><input type="radio" name="imageMode" value="url" <%= values.imageMode !== 'file' ? 'checked' : '' %>><span>↗ Dán đường dẫn ảnh</span></label>
+<label><input type="radio" name="imageMode" value="file" <%= values.imageMode === 'file' ? 'checked' : '' %>><span>↑ Tải ảnh từ máy</span></label>
+</div>
+<div class="image-editor-grid">
+<div class="image-editor-controls">
+<div class="image-url-panel"><label for="imagePath">URL ảnh</label><input id="imagePath" name="imagePath" type="url" maxlength="2000" value="<%= values.imagePath?.startsWith('https://') ? values.imagePath : '' %>" placeholder="https://images.unsplash.com/…" aria-describedby="image-url-hint<%= errors.imagePath ? ' imagePath-error' : '' %>" <%= errors.imagePath ? 'aria-invalid=true' : '' %>><p id="image-url-hint" class="image-hint">Dán link trực tiếp từ Unsplash, Supabase hoặc nguồn ảnh được cho phép.</p></div>
+<div class="image-file-panel"><label class="image-dropzone" for="imageFile"><span class="image-upload-icon" aria-hidden="true">↑</span><strong>Chọn một bức ảnh</strong><span>JPG, PNG hoặc WebP · Tối đa 5 MB</span></label><input id="imageFile" name="imageFile" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="image-file-hint"><p id="image-file-hint" class="image-hint">Ảnh được lưu vào Supabase Storage khi bạn lưu <%= config.singular %>.</p></div>
+<p class="image-preserve-note"><%= id ? 'Ảnh hiện tại được giữ nguyên nếu bạn chưa chọn ảnh thay thế.' : 'Chưa có ảnh? Trang sẽ dùng hình minh họa mặc định.' %></p>
+<% ['imageMode','imagePath','imageFile'].forEach(field => { if(errors[field]) { %><p class="field-error" id="<%= field %>-error"><%= errors[field] %></p><% } }); %>
+<p class="image-feedback" data-image-feedback role="status" aria-live="polite"></p>
+</div>
+<figure class="image-preview"><img data-image-preview src="<%= previewImage %>" alt="Xem trước ảnh <%= config.singular %>"><figcaption><span class="image-preview-dot" aria-hidden="true"></span><%= id && values.imagePath ? 'Ảnh hiện tại' : 'Xem trước ảnh' %></figcaption></figure>
+</div></fieldset>

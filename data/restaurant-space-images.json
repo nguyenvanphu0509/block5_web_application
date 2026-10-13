@@ -1,0 +1,392 @@
+[
+  {
+    "id": 1,
+    "name": "Phở Minh (Sài Gòn)",
+    "imagePath": "https://mia.vn/media/uploads/blog-du-lich/pho-minh-2-1720015378.jpg",
+    "sourceUrl": "https://mia.vn/cam-nang-du-lich/quan-ngon-pho-minh-sai-gon-16016",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Phở Minh Alley Restaurant\n\nNestled in a narrow alley at 63/6 Pasteur Street, District 1, Phở Minh welcomes guests into its modest green-painted interior. Nine simple tables fill two small rooms, where diners gather to savor bowls of steaming pho served with fresh herbs and condiments. A motorbike parked at the entrance hints at the restaurant’s intimate connection to the bustling streets of Ho Chi Minh City.\n\nThis historic eatery, founded in 1942 and now run by the founder’s grandchildren, has earned a spot in the Michelin Guide for its authentic Northern-style broth and time-honored family recipe. Despite its compact size, Phở Minh remains a favorite among locals and visitors seeking a genuine taste of Vietnamese pho in a cozy, unpretentious setting.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 2,
+    "name": "Xôi Gà Number One",
+    "imagePath": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2d/b0/c0/b5/caption.jpg?h=1200&s=1&w=1200",
+    "sourceUrl": "https://www.tripadvisor.at/Restaurant_Review-g293925-d8431799-Reviews-Xoi_Ga_Number_One-Ho_Chi_Minh_City.html",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Xôi Gà Number One Street Food Stall\n\nA bright green and yellow sign proclaims “Xôi Gà Number One” above a compact Vietnamese eatery. Inside, metal shelving holds jars of condiments and stacks of bowls, while plastic stools and tables fill the tiled floor. A glass display case showcases baked goods, and a ceiling fan circulates air in the simple, utilitarian space. A man seated near the entrance scrolls on his phone as a woman behind the counter prepares orders.\n\nThe restaurant is featured on Tripadvisor with a 4.2/5 rating from 68 reviews, ranking 810th among Ho Chi Minh City’s eateries. Travelers praise the sticky rice with chicken and spring rolls, though some note occasional pricing issues during holidays. The bilingual menu and delivery option make it accessible to both locals and visitors seeking authentic Vietnamese street food.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 3,
+    "name": "Hoa Túc (Sài Gòn)",
+    "imagePath": "https://prod-pics.guide.michelin.com/api/public/content/89b96bc0e7b74eac97c00be6fe7de7b6.jpeg?format=webp&h=500&w=500",
+    "sourceUrl": "https://guide.michelin.com/vn/en/ho-chi-minh/ho-chi-minh_2978179/restaurant/hoa-tuc",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Hoa Túc Restaurant Interior\n\nHoa Túc occupies a historic building in District 1 of Ho Chi Minh City, once an opium refinery from the early 1900s. The dining area combines a Parisian al fresco feel with a Colonial-style interior, featuring red arched columns, lush hanging greenery, and vintage chandeliers. Tables are meticulously arranged with patterned placemats, white dinnerware, and glassware, creating an elegant yet inviting atmosphere.\n\nRecognized in the 2025 MICHELIN Guide Vietnam, Hoa Túc specializes in traditional Vietnamese dishes presented with contemporary flair. The menu highlights items such as pink pomelo salad with crabmeat and bò lá lốt bánh hỏi, reflecting the restaurant’s commitment to both authenticity and innovation. Open daily from 11:00 to 22:00, it offers a unique blend of historical charm and modern dining sophistication.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 4,
+    "name": "Vietnam House",
+    "imagePath": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/23/26/00/d4/main-lobby.jpg?h=-1&s=1&w=1200",
+    "sourceUrl": "https://www.tripadvisor.com/Restaurant_Review-g293925-d1309266-Reviews-Vietnam_House_Restaurant-Ho_Chi_Minh_City.html",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Vietnam House Restaurant Interior\n\nThe restored colonial building on Dong Khoi and Mac Thi Buoi houses Vietnam House Restaurant, where modern Vietnamese cuisine meets elegant design. The main dining area showcases curved wooden booths upholstered in vibrant blue, each separated by fan-shaped stained-glass partitions that filter light and create private alcoves. Tables are meticulously arranged with white porcelain plates, polished cutlery, and crystal wine glasses, ready for a refined dining experience.\n\nAbove, a recessed ceiling with ambient lighting highlights a cluster of contemporary pendant fixtures, while a central artwork adds a focal point to the room. The combination of rich wood tones, marble flooring, and decorative glass elements evokes both nostalgia and modern sophistication, reflecting the restaurant’s blend of historic charm and contemporary flair.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 5,
+    "name": "The Monkey Gallery Dining",
+    "imagePath": "https://axwwgrkdco.cloudimg.io/v7/__gmpics3__/fda9284a4dfe43a9846d8364ba96bcfa.jpeg?width=1000",
+    "sourceUrl": "https://guide.michelin.com/th/en/ho-chi-minh/ho-chi-minh_2978179/restaurant/the-monkey-gallery-dining",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# The Monkey Gallery Dining Open Kitchen Experience\n\nA minimalist dining counter made of concrete anchors the interior, with chefs in white shirts and aprons busily preparing contemporary Vietnamese dishes using modern European techniques. Linear LED lighting and copper pendant lamps cast a warm glow over the counter, where wooden stools invite solo diners to watch the culinary team at work.\n\nThe high ceiling with exposed wooden beams and the gallery-like décor create a relaxed yet refined atmosphere. This MICHELIN Guide–listed restaurant in Ho Chi Minh City offers a four-course menu and creative cocktail and mocktail pairings, emphasizing the food as the centerpiece of the experience.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 6,
+    "name": "Bếp Mẹ ỉn (Le Thanh Ton Street)",
+    "imagePath": "https://axwwgrkdco.cloudimg.io/v7/__gmpics__/a776aaba47bd459f988f7534c3b3e93d",
+    "sourceUrl": "https://guide.michelin.com/kr/ko/ho-chi-minh/ho-chi-minh_2978179/restaurant/bep-me-in-le-thanh-ton",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Bếp Mẹ ỉn Restaurant Interior\n\nThe dining room at Bếp Mẹ ỉn on Le Thanh Ton Street in Ho Chi Minh City combines rustic charm with a welcoming atmosphere. Soft blue walls are decorated with framed paintings and portraits, while natural light streams through shuttered windows. Wooden tables and chairs sit atop a patterned tile floor, and woven pendant lamps cast a warm glow over the space.\n\nThis Bib Gourmand–listed eatery encourages guests to dine like locals, offering signature dishes such as shrimp and pork pancakes in bamboo baskets and fried rice with shrimp and egg served in coconut shells. Open daily from 10:30 to 22:30, the restaurant’s vibrant yet cozy interior reflects its commitment to authentic Vietnamese hospitality.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 7,
+    "name": "Ănăn Saigon",
+    "imagePath": "https://images.squarespace-cdn.com/content/v1/5d7f2d797a64971f017f10ff/1582022495940-NOODANEQU1UFGPY9P4XQ/05-18%2BSAIGON%2BTRIP%2B-%2BANAN%2BAP2.png?format=1000w",
+    "sourceUrl": "https://www.zoytotheworld.com/blog/gone-to-saigon-modern-vietnamese-cuisine-at-anan-saigon",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Anan Saigon Ground Floor Dining\n\nA lively dining scene unfolds at Anan Saigon’s ground floor, where guests gather around wooden tables beneath hanging pendant lamps. A colorful mural brightens one wall, while the open kitchen and bar area buzz with activity as staff prepare dishes and serve customers. The mix of high stools and regular chairs, along with warm ambient lighting, creates a welcoming yet modern atmosphere.\n\nThis restaurant in Ho Chi Minh City blends traditional Vietnamese street‑food inspiration with international influences under the guidance of chef Peter Cuong Franklin. Located near the Cho Cu wet market, Anan Saigon offers both a casual ground‑floor dining room and a rooftop bar overlooking the Bitexco Financial Tower. The image captures the essence of contemporary Vietnamese cuisine and design in a bustling urban setting.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 8,
+    "name": "Rice Field",
+    "imagePath": "https://d1u7goitqk7klj.cloudfront.net/f529fjcr5ayxauyzrb7k3y3rw228",
+    "sourceUrl": "https://www.hcm-cityguide.com/c/restaurants/s/vietnamese-cuisine/p/rice-field",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Rice Field Restaurant Interior\n\nRice Field, a popular Vietnamese home-style restaurant in Ho Chi Minh City’s District 1, opened in December 2017 and draws both tourists and locals with its retro, colorful decor. The interior showcases dark wooden beams, patterned green-and-white tile floors, and hanging lanterns, creating a nostalgic yet stylish atmosphere. Traditional Vietnamese flags and a large decorative fan on the brick wall add cultural accents.\n\nAt the center of the dining area, a painted ceramic vase brimming with lotus buds and seed pods serves as a striking focal point. Wooden tables and chairs are arranged for cozy gatherings, and a bar counter is visible to one side. Terrace seating offers views of the city skyline at night, complementing the restaurant’s homey menu of bánh xèo and braised pork belly with egg, all designed to appeal to Japanese palates.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 9,
+    "name": "Phở Việt Nam (Bến Thành)",
+    "imagePath": "https://hotel84.com/hotel84-images/news/photo/14-pham-hong-thai-pho-viet-.jpg",
+    "sourceUrl": "https://hotel84.com/nha-hang/pho-viet-nam-14-pham-hong-thai.html",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Phở Việt Nam Grand Opening\n\nThe storefront of Phở Việt Nam at 14 Phạm Hồng Thái in District 1, Ho Chi Minh City, features a prominent brown sign with bold yellow lettering. Below the main sign, a celebratory yellow banner proclaims “Mừng Khai Trương – Mua 1 Tặng 2,” highlighting a buy‑one‑get‑two promotion for the restaurant’s opening.\n\nThis branch is part of a popular Saigon pho chain known for its hot stone bowl pho (Phở Thố Đá) and traditional beef pho with multiple cuts of meat. The in‑house handmade rice noodles and a clean, airy dining space aim to attract both daytime and late‑night diners in the bustling Bến Thành neighborhood.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 10,
+    "name": "Bà Cô Lốc Cốc",
+    "imagePath": "https://pasgo.vn/Upload/anh-chi-tiet/nha-hang-ba-co-loc-coc-tran-cao-van-10-normal-2206787253393.webp",
+    "sourceUrl": "https://pasgo.vn/nha-hang/nha-hang-ba-co-loc-coc-tran-cao-van-4647",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Bà Cô Lốc Cốc Neon Facade\n\nA striking neon sign in pink and purple proclaims “Bà Cô Lốc Cốc” above the entrance, with “Nhà hàng ốc” glowing below. The restaurant’s address, “40A,” is also illuminated, set against a dark brick wall and framed by multicolored window panes. A balcony on the second floor adds architectural interest, while warm spotlights accentuate the signage.\n\nThis two-story seafood restaurant on Trần Cao Vân street in District 3, Ho Chi Minh City, specializes in a wide range of snail and seafood dishes. The youthful, modern design and vibrant lighting create an inviting atmosphere for gatherings. Known for its fresh ingredients and unique sauces, Bà Cô Lốc Cốc offers both private rooms and open seating, accommodating up to 100 guests. The neon-lit facade serves as a beacon for diners seeking a lively dining experience.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 11,
+    "name": "Béo Ơi",
+    "imagePath": "https://prod-pics.guide.michelin.com/api/public/content/f34dc5dd96a044e49bfed0112a77bb65.jpeg?format=webp&h=500&w=500",
+    "sourceUrl": "https://guide.michelin.com/jp/ja/ho-chi-minh/ho-chi-minh_2978179/restaurant/beo-oi",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Béo Ơi Street‑Side Eatery\n\nA bright red façade welcomes diners to Béo Ơi, a Michelin‑recognized Vietnamese restaurant in Ho Chi Minh City. The exterior features a hand‑painted bicycle carrying potted plants, rustic wooden shutters, and a bold Michelin Guide sign proclaiming “Món Ngon Hà Nội.” Through the open window, woven pendant lamps and kitchen activity hint at the home‑style cooking within.\n\nLocated at 15/20 Nguyen Thi Minh Khai Street in Saigon Ward, Béo Ơi is celebrated for generous portions of Hanoian specialties like bún riêu cua and hot pot dinners. The owner‑chef, nicknamed “béo ơi” or “fat boy,” draws local crowds during lunch hours. Open daily from 10:30 to 22:00, this casual spot offers an authentic street‑side dining experience in the heart of the city.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 12,
+    "name": "Bờm",
+    "imagePath": "https://axwwgrkdco.cloudimg.io/v7/__gmpics3__/14bdee3bd7b34011a010a52d0acce011.png",
+    "sourceUrl": "https://guide.michelin.com/vn/en/ho-chi-minh/ho-chi-minh_2978179/restaurant/bom-1205510",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Bờm Restaurant Interior\n\nThe dining room at Bờm in Ho Chi Minh City features a long wooden table flanked by woven bamboo chairs, all set against smooth cement walls. A single overhead pendant light casts a warm glow over a simple dried floral centerpiece, while place settings await guests in the low-lit space.\n\nA large framed portrait of a figure wearing a traditional conical hat hangs prominently on one wall, balanced by a decorative mirror on the opposite side. The combination of natural bamboo, minimalist concrete, and soft lighting evokes a modern yet nostalgic Vietnamese ambiance, reflecting the restaurant’s contemporary take on traditional design.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 13,
+    "name": "Chay Garden (Xuan Hoa)",
+    "imagePath": "https://pasgo.vn/Upload/anh-chi-tiet/nha-hang-chay-garden-vo-van-tan-10-normal-2112668238586.webp",
+    "sourceUrl": "https://pasgo.vn/nha-hang/chay-garden-vegetarian-restaurant-and-coffee-vo-van-tan-3467",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Chay Garden Vegetarian Restaurant Interior\n\nA serene dining space showcases a blend of vintage Indochine design and lush botanical accents. Dark wooden chairs encircle round tables covered in soft linens, while a striking orchid centerpiece in a blue pot draws the eye. The tropical leaf mural on the far wall and patterned tile flooring reinforce the garden-inspired theme.\n\nArched doorways frame additional seating areas, and potted plants are thoughtfully placed throughout. Subtle lighting fixtures hang from the ceiling, casting a warm glow over the space. This cozy interior invites guests to enjoy a tranquil vegetarian dining experience.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 14,
+    "name": "Nhà Tú",
+    "imagePath": "https://cafefcdn.com/203337114487263232/2024/9/21/nha-tu-3-14450966-1726889843254-1726889843357171899868.jpg",
+    "sourceUrl": "https://cafef.vn/cam-500-nghin-dong-an-com-nha-tu-duoc-michelin-de-xuat-188240921103859386.chn",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Nhà Tú – Quán cơm gia đình được Michelin Bib Gourmand đề xuất\n\nNhà Tú nằm trong con hẻm 129 Võ Văn Tần, Quận 3, TP.HCM, mở cửa từ 8h30 đến 22h30 mỗi ngày. Quán gồm ba tầng, không gian thoáng mát, yên tĩnh, được trang trí bằng mành tre, thúng và cây xanh, gợi nhớ khung cảnh làng quê Việt Nam.\n\nThực đơn của Nhà Tú phục vụ các bữa cơm gia đình với giá từ 50.000 đến 150.000 đồng và các loại lẩu từ 320.000 đến 350.000 đồng. Món ốc nhồi thịt, kho quẹt, trứng chiên hàu, lẩu hàu sữa và lẩu gà lá é là những món được Michelin Bib Gourmand 2024 đề xuất. Chủ quán Đặng Minh Tú tự học công thức từ những chuyến đi và thử nghiệm với khách hàng để hoàn thiện menu.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 15,
+    "name": "Đông Phố",
+    "imagePath": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/05/ba/ce/d2/cosy-interior.jpg?h=400&s=1&w=500",
+    "sourceUrl": "https://www.tripadvisor.com/Restaurant_Review-g293925-d3330826-Reviews-Dong_Pho-Ho_Chi_Minh_City.html",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Cozy Dining Space\n\nA softly illuminated restaurant interior showcases a blend of modern and traditional decor. Neatly arranged tables are set with white plates and silverware, surrounded by comfortable green and red upholstered chairs. A striking red floor lamp beside a glass door provides warm ambient lighting, while decorative plates and framed artwork adorn the white walls. Tall floral arrangements in the corner add a natural accent to the otherwise minimalist design.\n\nThis dining area belongs to Dong Pho in Ho Chi Minh City, a Michelin-recommended eatery specializing in Central Vietnamese cuisine. The restaurant shares its bungalow with an ice cream parlour and offers a diverse menu, including vegetarian and vegan options. With free Wi-Fi, outdoor seating, and table service, it caters to both locals and tourists seeking an unpretentious yet stylish dining experience.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 16,
+    "name": "Cô Liêng",
+    "imagePath": "https://kenh14cdn.com/203336854389633024/2023/6/28/photo-5-1687949327483478272654.jpg",
+    "sourceUrl": "https://kenh14.vn/ghe-quan-bo-la-lot-duoc-michelin-de-xuat-khach-nuoc-ngoai-san-lung-20230628175102919.chn",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Quán Cô Liêng Street-Side Restaurant\n\nNestled on Võ Văn Tần Street in District 3, Ho Chi Minh City, Quán Cô Liêng has been serving its signature bò lá lốt and bún thịt nướng since 1995. A bright blue sign above the entrance lists the address—321 Võ Văn Tần—and phone number, while a row of motorbikes parked outside underscores its steady stream of patrons. Inside, diners watch as staff grill beef wrapped in betel leaves and prepare vermicelli bowls with fresh herbs, pickles, kimchi, and rice paper.\n\nRecently recommended by the Michelin Guide and praised by food influencer Mark Wiens, this nearly 30-year-old eatery is celebrated for its deeply marinated beef and special mắm nêm dipping sauce. Owner Trần Thị Kim Liêng maintains strict standards for ingredient quality and food safety, even sourcing rare betel leaves during seasonal shortages. The restaurant’s enduring popularity among locals, chefs, and international visitors highlights its reputation as a must-visit culinary spot in Saigon.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 17,
+    "name": "Thúy 94 Cũ",
+    "imagePath": "https://down-vn.img.susercontent.com/vn-11134259-7r98o-lw8zem0vlyor58%40resize_w800",
+    "sourceUrl": "https://www.foody.vn/ho-chi-minh/mien-cua-94",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Quán Thúy 94 – Miến Xào Cua và Chả Giò Cua Biển\n\nQuán Thúy 94 tọa lạc tại 84 Đinh Tiên Hoàng, Phường Đa Kao, Quận 1, TP. HCM, nổi bật với biển hiệu vàng lớn in chữ xanh “THÚY 94 CŨ” cùng hình hai con cua. Thực đơn chủ yếu gồm miến xào cua, chả giò cua biển, bánh canh cua, cua lột tẩm bột và càng cua rang me. Không gian quán giản dị, bàn ghế thấp, vỉa hè lát gạch, phục vụ nhanh và có cả dịch vụ giao hàng.\n\nTrên Foody.vn, quán nhận điểm trung bình 6.3/10 từ 60 bình luận. Khách khen miến xào cua nhiều thịt, chả giò giòn rụm nhưng cũng góp ý về độ ngọt và giá cả hơi cao. Quán mở cửa từ 10:00 đến 23:00, giá dao động 60.000đ–110.000đ, phù hợp cho gia đình, nhóm bạn và dân văn phòng tìm món Bắc giản dị giữa lòng Sài Gòn.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 18,
+    "name": "Hoi An Sense",
+    "imagePath": "https://res.klook.com/image/upload/w_750%2Ch_469%2Cc_fill%2Cq_85/w_80%2Cx_15%2Cy_15%2Cg_south_west%2Cl_Klook_water_br_trans_yhcmh3/activities/tuqkb8pjz3z35h5k7vxl.jpg",
+    "sourceUrl": "https://www.klook.com/en-AU/activity/213180-hoi-an-sense-michelin-restaurant-central-vietnamese-cuisine/",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Hội An Sense Restaurant Interior\n\nStepping into Hội An Sense feels like entering a refined slice of central Vietnam’s heritage. The warm wooden walls are adorned with intricate carvings, framed photographs, and a glowing sign that reads “Hội An Sense.” Red silk lanterns hang overhead, casting a soft, inviting glow across the stone floor and plush armchairs.\n\nA vintage bicycle painted in coral red stands as a focal point, its basket filled with fresh flowers that echo the restaurant’s attention to detail. Small tables set for two invite guests to enjoy an intimate meal, while decorative screens and potted plants complete the immersive cultural atmosphere. This elegant Indochine–style interior perfectly complements the restaurant’s reputation for authentic Hoi An–inspired cuisine and live traditional music performances.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 19,
+    "name": "Phở Hương Bình",
+    "imagePath": "https://static.wixstatic.com/media/69e2df_66f079d1d2fb4fcdb57b06cc0752401e~mv2.jpg/v1/fill/w_1000%2Ch_781%2Cal_c%2Cq_85%2Cusm_0.66_1.00_0.01/69e2df_66f079d1d2fb4fcdb57b06cc0752401e~mv2.jpg",
+    "sourceUrl": "https://www.starkitchen-vietnam-gift.com/post/%E3%80%90%E3%83%9B%E3%83%BC%E3%83%81%E3%83%9F%E3%83%B3%E3%80%91%E3%83%9F%E3%82%B7%E3%83%A5%E3%83%A9%E3%83%B3%E6%8E%B2%E8%BC%89%E3%81%AE%E7%B5%B6%E5%93%81%E3%83%95%E3%82%A9%E3%83%BC%EF%BC%81%E3%83%AD%E3%83%BC%E3%82%AB%E3%83%AB%E6%84%9F%E3%82%82%E6%A5%BD%E3%81%97%E3%82%81%E3%82%8B%E3%80%8Cph%E1%BB%9F-h%C6%B0%C6%A1ng-b%C3%ACnh%E3%80%8D",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Phở Hương Bình Entrance on Võ Thị Sáu\n\nA bright yellow sign above the doorway announces “SINCE 1958” and “Phở Gà - Bò HƯƠNG BÌNH,” advertising the restaurant’s long history and specialty in chicken and beef pho. Below, a man in a blue shirt guides his scooter into a line of parked motorbikes, capturing a typical moment of daily life in Ho Chi Minh City’s District 3. The narrow sidewalk is flanked by a small yellow food cart and adjacent buildings, creating a vibrant street-front scene.\n\nThe restaurant’s address, 148 Võ Thị Sáu, Phường 8, Quận 3, and phone number are clearly displayed, while a neighboring sign for the Ho Chi Minh City Cadre Academy marks the local institutional presence. This spot is known for its Bib Gourmand–recognized pho, open from early morning until night, and sits within walking distance of landmarks like the War Remnants Museum and Tan Dinh Church. The image conveys both the culinary heritage and the everyday rhythm of urban Vietnam.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 20,
+    "name": "Bánh Cuốn Tây Hồ 127",
+    "imagePath": "https://media.phunumoi.net.vn/files/hoanguyen/2021/07/20/quan-banh-cu-n-tay-h-1354-033629.jpg",
+    "sourceUrl": "https://phunumoi.net.vn/banh-cuon-tay-ho-nua-the-ky-mot-huong-vi-d193897.html",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Bánh cuốn Tây Hồ Shopfront\n\nA green-painted storefront on Đinh Tiên Hoàng Street in District 1, Ho Chi Minh City, proudly displays the name “TÂY HỒ” above its entrance. The sign also reads “Bánh cuốn – Steamed Rice-Paper Rolls” along with the address and phone number. Under a matching green awning, several motorbikes are parked as customers and staff move about inside the compact space.\n\nBánh cuốn Tây Hồ has been a Saigon institution for more than 50 years, originally located near the Phan Châu Trinh shrine by Đa Kao market. Its signature dish consists of four delicate rice-paper rolls served with fresh herbs, fried shallots, slices of cha lụa and cha quế, and a dipping sauce enriched with traditional cà cuống essence. A second branch on Phan Xích Long in Phú Nhuận District offers a modernized setting, but the original location retains its nostalgic charm and loyal following.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 21,
+    "name": "Bún Bò Huế Cô Như",
+    "imagePath": "https://cafefcdn.com/203337114487263232/2024/7/5/batchdsc06283-17199988426641490240493-1720153214193-1720153214825793695061.jpg",
+    "sourceUrl": "https://cafef.vn/quan-bun-bo-mo-noi-o-sai-gon-sau-khi-duoc-michelin-goi-ten-khach-hang-phai-xep-hang-doi-den-luot-nguoi-nuoc-ngoai-cung-to-mo-ghe-an-thu-188240705112142478.chn",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Bún Bò Huế Cô Như Stall\n\nA smiling vendor wearing a blue floral dress sits beside her yellow scooter under a weathered sign that reads “Bún Bò Huế Cô Như.” The small street-side setup includes plastic chairs, a red thermos, and cooking utensils, hinting at a bustling alleyway eatery. Bright daylight illuminates the narrow lane, where customers often queue for the famous floating beef fat topping.\n\nThis Saigon stall, tucked in an alley on Vo Van Tan Street, District 3, has served locals since 1995. Known for its unique mỡ nổi (floating beef fat) and affordable 40,000 VND bowls, it earned a MICHELIN Selected mention, drawing both regulars and curious foreign diners. The vendor’s warm smile and the vibrant street market backdrop capture the authentic charm of this beloved bun bo Hue spot.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 22,
+    "name": "Phở Phượng",
+    "imagePath": "https://d1u7goitqk7klj.cloudfront.net/kl02axy2lydu84oulk3a4101yc9b",
+    "sourceUrl": "https://www.hcm-cityguide.com/c/restaurants/s/pho/p/pho-phuong",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Pho Phuong Street-Side Pho Restaurant\n\nPho Phuong occupies a corner storefront at 25 Hoang Sa in District 1, Ho Chi Minh City, with a bright yellow sign listing its special cuts of beef—tái, nạm, gầu, gân, sụn, bò viên, and pín—and a Michelin Guide emblem. Under a blue-striped awning, customers sit on red plastic stools at metal tables, slurping steaming bowls of pho as staff work behind the counter ladling broth and slicing meat.\n\nThe restaurant opens early at 5:30 and stays busy through the evening, offering an affordable dining experience for locals and tourists alike. Its signature dish features oxtail simmered for 40 hours until the meat is tender and the skin gelatinous, reflecting the shop’s dedication to traditional pho preparation.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 23,
+    "name": "Ốc Oanh",
+    "imagePath": "https://mia.vn/media/uploads/blog-du-lich/pho-am-thuc-vinh-khanh-oc-oanh-1707245308.jpg",
+    "sourceUrl": "https://mia.vn/cam-nang-du-lich/pho-am-thuc-vinh-khanh-14606",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Nighttime Seafood at Ốc Oanh\n\nA vibrant seafood stall named Ốc Oanh glows under red and yellow neon lights spelling “ỐC OANH Tiger.” Green and white plastic chairs fill the open-air dining area, where groups of friends and families gather around low tables laden with dishes. Overhead, tree branches frame the scene, adding a touch of greenery to the urban night market ambiance.\n\nThis eatery is located on Vĩnh Khánh food street in District 4 of Ho Chi Minh City, a popular destination for seafood lovers. Ốc Oanh operates daily from early afternoon until midnight, offering a casual, budget-friendly environment. The lively crowd and warm lighting capture the energetic spirit of Vietnam’s street food culture.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 24,
+    "name": "Bánh Xèo 46A",
+    "imagePath": "https://cdn.tgdd.vn/Files/2023/02/21/1511779/kham-pha-5-quan-an-via-he-sieu-hut-khach-tay-tai-sai-gon-202302211026448854.jpg",
+    "sourceUrl": "https://www.bachhoaxanh.com/kinh-nghiem-hay/kham-pha-5-quan-an-via-he-sieu-hut-khach-tay-tai-sai-gon-1511779",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Bánh Xèo 46A Street Stall\n\nA bustling sidewalk restaurant on Đinh Công Tráng Street in Saigon’s District 1 draws both locals and tourists with its signature crispy Bánh Xèo. The stall’s bright green facade and clear signage—“BÁNH XÈO 46A” along with its address and phone number—make it easily recognizable among the city’s vibrant street food scene.\n\nInside, staff in blue and purple shirts work behind a counter, cooking and plating the savory rice flour pancakes. Customers sit at simple metal tables under a covered area, enjoying their meals as motorbikes pass by. This popular spot is featured in a guide to the top five sidewalk eateries in Ho Chi Minh City that attract Western visitors.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 25,
+    "name": "Bếp Người Hội An",
+    "imagePath": "https://down-vn.img.susercontent.com/vn-11134259-7r98o-lwa16l4rvtnd51%40resize_w800",
+    "sourceUrl": "https://www.foody.vn/ho-chi-minh/bep-nguoi-hoi-an-tiem-mi-quang-com-ga/binh-luan",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Bếp Người Hội An Dining Scene\n\nA group of office workers gathers around low wooden tables and stools, savoring bowls of mì Quảng and cơm gà in a warmly lit, lantern-adorned space. The walls are painted with murals of traditional Vietnamese street food vendors, and hanging lanterns cast a soft glow over the diners. Potted plants and simple wooden furniture complete the cozy, communal atmosphere.\n\nThe restaurant specializes in Central Vietnamese dishes, as indicated by the sign “Bếp Người Hội An” and the menu offerings. Patrons chat and eat with chopsticks, creating a lively yet relaxed environment. The setting reflects a popular local spot in District 3, Ho Chi Minh City, known for its authentic flavors and casual dining experience.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 26,
+    "name": "Hồng Phát (Bàn Cờ)",
+    "imagePath": "https://www.cathaypacific.com/content/dam/focal-point/cx/inspiration/2025/07/The_best_restaurants_in_Ho_Chi_Minh_City_to_book_now-Hong_Phat_Exterior-Credit_Hu_Tieu_Hong_Phat-1.renditionimage.900.600.jpg",
+    "sourceUrl": "https://www.cathaypacific.com/cx/en_TW/inspiration/dining/best-restaurants-ho-chi-minh-city.html",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Hồng Phát Restaurant Exterior\n\nThe photograph captures the nighttime facade of Hồng Phát, a multi‑story eatery in Ho Chi Minh City. Bright vertical light strips frame the building, while the bold red “Hồng Phát” sign, established since 1975, stands out against the warm concrete and glass exterior. Below, illuminated white text advertises “Hủ Tiếu Nam Vang” and “Các Món Ngon Việt, Hoa,” signaling the restaurant’s Vietnamese and Chinese noodle specialties.\n\nFeatured on Cathay Pacific’s guide to the best restaurants in Ho Chi Minh City, this image exemplifies the city’s vibrant dining scene, where modern design meets time‑honored culinary traditions. The article by Joshua Zukas highlights Hồng Phát among other notable venues, celebrating the blend of local character and contemporary creativity that defines Saigon’s food culture.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 27,
+    "name": "Phở Hùng (Cầu Ông Lãnh)",
+    "imagePath": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2d/56/61/db/caption.jpg?h=1100&s=1&w=1100",
+    "sourceUrl": "https://www.tripadvisor.com.sg/Restaurant_Review-g293925-d3392848-Reviews-Pho_Hung-Ho_Chi_Minh_City.html",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Phở Hùng Restaurant Front\n\nPhở Hùng, located at 241–243 Nguyễn Trãi in District 1, Ho Chi Minh City, features a bold black and yellow sign advertising “Vietnamese Beef Noodle Soup.” A striped red and yellow awning extends over the entrance, where several motorbikes are parked and a casually dressed man stands on the sidewalk. The shop’s phone number, 38385089, is printed on the sign, and the interior reveals patrons seated at tables enjoying steaming bowls of pho.\n\nThis 24‑hour noodle shop, established in 2006, has earned a Travellers’ Choice award on Tripadvisor and is celebrated for its traditional family recipe, quick service, and hygienic standards. With vegan options, street parking, takeout, and delivery, Phở Hùng remains a popular destination for both locals and visitors seeking authentic Vietnamese beef noodle soup.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 28,
+    "name": "Bún Bò Huế 14B",
+    "imagePath": "https://cafefcdn.com/203337114487263232/2024/8/16/quan-bun-bo-14b-14483163-1723781737686-17237817378901195315018.jpg",
+    "sourceUrl": "https://cafef.vn/cam-50-nghin-dong-thuong-thuc-bun-bo-hue-o-tphcm-duoc-michelin-goi-ten-188240816071458161.chn",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Bún bò Huế 14B Stall in District 4\n\nA modest noodle shop tucked into a quiet alley of Ho Chi Minh City’s District 4, Bún bò Huế 14B welcomes diners under a bold blue-and-white sign. Simple metal tables and stools line the entrance, while large cooking pots and utensils are visible inside the open-front kitchen. One customer sits alone, savoring a steaming bowl of the restaurant’s signature spicy beef noodle soup.\n\nFounded in 2018 by Nguyễn Thái Châu and Nguyễn Hoàng Vũ, the eatery earned a Michelin Bib Gourmand for its flavorful yet affordable bowls, priced between 45,000 and 60,000 VND. The owners adapted the traditional Hue recipe to suit Southern palates, balancing a richer, more pungent broth. After joining online delivery platforms, the shop’s daily orders soared, cementing its reputation as a local favorite.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 29,
+    "name": "Phở Chào",
+    "imagePath": "https://axwwgrkdco.cloudimg.io/v7/__gmpics__/61ce07161c2b4cd185be3a84838b8bbf",
+    "sourceUrl": "https://guide.michelin.com/vn/en/ho-chi-minh/ho-chi-minh_2978179/restaurant/pho-chao",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Phở Chào Street-Side Noodle Shop\n\nPhở Chào, a Bib Gourmand–recognized noodle restaurant in Ho Chi Minh City, welcomes guests under a bright yellow awning and a glowing “CHÀO” sign. The shop’s exterior displays its founding year “Since 1986” and offers both beef and chicken phở, as indicated by menu posters and an “Open” sign in the doorway. A motorbike parked outside and simple wooden tables with stools set the scene for an authentic street-side dining experience.\n\nInside, diners sample specialties like phở bắp hoa with medium-rare beef and crispy fried chicken gà tôm mắm sốt, all served in a casual, warmly lit space. Operating daily from 06:30 to 21:00, Phở Chào retains its local charm while earning praise in the 2025 MICHELIN Guide for its rich broths and good value cooking.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 30,
+    "name": "Tiệm Cơm Thố Chuyên Ký",
+    "imagePath": "https://afamilycdn.com/150157425591193600/2024/10/5/chuyen-ky-1-22504446-1728091342202-1728091342986384667774-1728102309544-17281023097001957093708.jpg",
+    "sourceUrl": "https://afamily.vn/cam-60-nghin-dong-thuong-thuc-com-tho-o-tphcm-duoc-michelin-goi-ten-2024100511270682.chn",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Tiệm Cơm Chuyên Ký Storefront\n\nTiệm Cơm Chuyên Ký, nằm trong hẻm 69 trên đường Tôn Thất Đạm, Quận 1, TP.HCM, vừa được Michelin vinh danh hạng Bib Gourmand. Bảng hiệu sơn tay màu đỏ nổi bật phong cách Sài Gòn những năm 70 treo trên nền gạch xanh ngọc, tạo cảm giác hoài cổ. Bên ngoài quán, nhiều xe máy đỗ trước cửa, biển chỉ dẫn giữ xe và cảnh báo lộ giới được gắn gần lối vào.\n\nKhông gian bên trong quán ấm cúng với bàn ghế gỗ đơn giản, tủ lạnh trưng bày đồ uống và cây cảnh trang trí. Thực khách đang thưởng thức cơm thố chuẩn vị Quảng Đông, món ăn được nấu trong chén sành bằng hơi nước để giữ độ nóng và dẻo. Tiệm mở hai khung giờ trong ngày, phục vụ các món kho, hấp, xào, chiên đa dạng với giá từ 60.000 đến 180.000 đồng mỗi phần.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 31,
+    "name": "Quán ăn Ngự Bình",
+    "imagePath": "https://mia.vn/media/uploads/blog-du-lich/quan-hue-ngu-binh-1753749313.jpg",
+    "sourceUrl": "https://mia.vn/cam-nang-du-lich/diem-danh-quan-hue-ngon-nhat-18967",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Quán ăn Ngự Bình Hue Restaurant Entrance\n\nQuán ăn Ngự Bình welcomes diners with a prominent white-and-blue sign above its gated entrance, displaying its name, address at 82 Cư Xá Nguyễn Văn Trỗi, Phường 17, Phú Nhuận, and contact number. A smaller sign beside the gate advertises free parking, while a notice board below details operating hours from 15:00 to 20:00 and closure on lunar full and new moon days.\n\nThe restaurant’s exterior is framed by a metal fence and fluorescent lights, creating a secure yet inviting atmosphere. Several motorbikes are parked in front, and passersby navigate the narrow sidewalk, hinting at the bustling urban setting of Ho Chi Minh City’s Phú Nhuận district.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 32,
+    "name": "Little Bear",
+    "imagePath": "https://littlebearsgn.com/wp-content/uploads/2023/11/LB_16-2-1024x682.webp",
+    "sourceUrl": "https://littlebearsgn.com/",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Little Bear Wine Bar Counter\n\nA row of wooden stools lines a polished counter set with wine glasses and small plates, offering front-row seating to an open kitchen. Chefs and staff move briskly amid stainless steel appliances, shelves of ingredients, and hanging lamps, crafting dishes in full view of guests. Above the arched pass-through, a neon wine glass icon glows softly, reinforcing the bar’s intimate and modern vibe.\n\nThe venue’s design blends warm tones and sleek materials, creating a cozy yet contemporary atmosphere. This setup invites patrons to engage with the culinary process while enjoying a curated selection of wines and dishes inspired by Vietnamese flavors and modern techniques.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 33,
+    "name": "Phở Bò Phú Gia (Nhiêu Lộc)",
+    "imagePath": "https://prod-pics.guide.michelin.com/api/public/content/887431d6a26a4292b21f3cc2fe0c5e18.jpeg?format=webp&h=500&w=500",
+    "sourceUrl": "https://guide.michelin.com/vn/en/ho-chi-minh/ho-chi-minh_2978179/restaurant/pho-bo-phu-gia",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Phở Bò Phú Gia Restaurant\n\nPhở Bò Phú Gia is a modest noodle shop nestled on Ly Chinh Thang Street in District 3 of Ho Chi Minh City. The bright red and yellow sign above the entrance announces its name and phone number, while the open kitchen and seating area are visible behind a row of parked motorbikes. An awning and umbrella provide shade for customers and vehicles alike.\n\nSpecializing in beef noodle soup, the restaurant offers sliced beef, brisket, or a combination, with its standout phở tái lăn featuring wok-seared garlic beef and aromatic herbs. Open daily from 06:00 to 22:30, Phở Bò Phú Gia has earned recognition in the 2025 MICHELIN Guide Vietnam for its flavorful broth and quality ingredients.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 34,
+    "name": "Bún Thịt Nướng Hoàng Văn",
+    "imagePath": "https://images2.thanhnien.vn/528068263637045248/2023/6/16/9473d7f60720d67e8f31-1686911981452479546941.jpg",
+    "sourceUrl": "https://thanhnien.vn/quan-bun-thit-nuong-duy-nhat-duoc-giai-michelin-o-tphcm-nhung-dieu-bat-ngo-185230616180106487.htm",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Hoàng Văn Bún Thịt Nướng Stall\n\nA vibrant street-side eatery in Tân Bình District, Ho Chi Minh City, Hoàng Văn specializes in a single dish: bún thịt nướng topped with grilled pork, spring rolls, fresh vegetables, and peanuts. The shop’s bold banner displays its name, address (137 Chấn Hưng, P.6), and phone number, while a Grab delivery rider in green gear waits beside his motorbike, illustrating the modern mix of traditional cuisine and app-based delivery.\n\nAfter over 20 years of serving locals, the family-run stall earned a spot in the Michelin Selected guide, prompting a surge of customers and delivery orders. Inside, staff work swiftly to assemble bowls, and the casual setup—with plastic buckets and crates—underscores its humble origins and enduring appeal. The scene captures the dynamic street-food culture of Ho Chi Minh City, where time-honored recipes meet contemporary dining trends.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 35,
+    "name": "Miên Saigon",
+    "imagePath": "https://www.frasersproperty.com/content/dam/frasersproperty/feature/project/frasers-vn/shared-experience/mien-saigon-3.jpg",
+    "sourceUrl": "https://www.frasersproperty.com/vn/shared-experience/mien-saigon",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Mien Saigon Restaurant Interior\n\nThe photograph captures the elegant dining area of Mien Saigon, a Michelin-selected progressive Vietnamese restaurant in Ho Chi Minh City. Rows of dark wooden tables and chairs are meticulously arranged under soft, recessed lighting. Each table is set with white plates, silver cutlery, folded napkins, and a small vase holding a single red flower, emphasizing the restaurant’s attention to detail and minimalist aesthetic.\n\nAt the back of the room, a glowing sign displays “miên SAIGON,” reinforcing the venue’s identity. The warm, ambient light casts gentle shadows on the textured walls and wooden surfaces, creating an intimate and inviting atmosphere. This interior design reflects a modern take on Vietnamese dining, blending contemporary style with traditional elements.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 36,
+    "name": "Ốc Đào (Cầu Ông Lãnh)",
+    "imagePath": "https://media.vov.vn/sites/default/files/styles/large/public/2024-01/oc_dao.jpg",
+    "sourceUrl": "https://english.vov.vn/en/travel/michelin-guide-recommends-major-fresh-seafood-eateries-in-vietnam-post1072005.vov",
+    "photoType": "Không gian quán",
+    "isDemo": false,
+    "caption": "# Ốc Đào Seafood Restaurant Sign\n\nA vibrant neon sign reading “Ốc Đào” and “212B/D48 Nguyễn Trãi P.NCT, Q.1” glows against the evening sky in Ho Chi Minh City. The two-story building is decorated with red lanterns and lush greenery on its balconies, creating a festive street-side ambiance. Overhead power lines frame the scene, while the warm interior lights hint at a busy dining atmosphere inside.\n\nThe Michelin Guide recommends Ốc Đào as one of the top fresh seafood eateries in Vietnam, praising its extensive selection of bivalves and sea snails prepared with traditional Vietnamese seasonings. Located in District 1 on Nguyễn Trãi Street, the restaurant is celebrated for its authentic flavors and lively setting, making it a must-visit spot for both locals and tourists seeking casual, flavorful seafood dining.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 37,
+    "name": "Bếp Quốc Tế · Demo",
+    "imagePath": "https://images.unsplash.com/photo-1667388969250-1c7220bf3f37?auto=format&fit=crop&w=1200&q=85",
+    "sourceUrl": "https://unsplash.com/fr/photos/une-salle-avec-tables-et-chaises-e4B5AvA7Jqo",
+    "photoType": "Không gian minh họa",
+    "isDemo": true,
+    "caption": "# Cozy Modern Restaurant Interior\n\nA warmly lit dining room showcases a harmonious blend of contemporary and rustic design elements. Wooden floors and tables are paired with cushioned chairs, while pendant lights suspended from a dark wood-paneled ceiling cast a soft, inviting glow. Large windows line one side of the room, allowing natural light to accentuate small potted plants and minimalist floral centerpieces on each table.\n\nThis photograph, captured by Glenov Brankovic and featured on Unsplash, highlights a restaurant interior designed for comfort and style. The arrangement of furniture and lighting creates an intimate yet open atmosphere, ideal for casual dining or small gatherings.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 38,
+    "name": "Bếp Hải Sản · Demo",
+    "imagePath": "https://images.unsplash.com/photo-1662472458178-13ea0399f2b2?auto=format&fit=crop&w=1200&q=85",
+    "sourceUrl": "https://unsplash.com/photos/a-large-room-with-tables-and-chairs-E9a5P2mSqRs",
+    "photoType": "Không gian minh họa",
+    "isDemo": true,
+    "caption": "# Elegant Restaurant Dining Room\n\nThis high-resolution photograph by Prateek Jaiswal captures a modern restaurant interior bathed in warm light. Round wooden tables are meticulously arranged with white plates, glassware, and neatly folded napkins, each surrounded by teal-upholstered chairs that pop against the black-and-white checkered floor. Overhead, a striking circular chandelier and a series of pendant lights create an inviting ambiance.\n\nArched openings and large windows frame the space, allowing natural light to filter in and highlight the room’s architectural details. Subtle greenery in potted plants softens the sleek design, while brick accents and mirrored panels add texture and depth. The overall effect is a harmonious blend of contemporary style and cozy warmth, ideal for an upscale dining experience.",
+    "checkedAt": "2026-10-13"
+  },
+  {
+    "id": 39,
+    "name": "Góc Cà Phê · Demo",
+    "imagePath": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=85",
+    "sourceUrl": "https://unsplash.com/pt-br/fotografias/interior-de-um-cafe-tKN1WXrzQ3s",
+    "photoType": "Không gian minh họa",
+    "isDemo": true,
+    "caption": "# Cozy Utrecht Coffeehouse Interior\n\nA welcoming café in Utrecht showcases a blend of modern and rustic design elements. White wicker chairs with mustard-yellow cushions surround a small round table, while a long counter behind them holds coffee machines, potted plants, and neatly arranged glassware. Above the counter, a large chalkboard menu lists offerings such as Americano, cappuccino, matcha latte, and various teas and snacks.\n\nWarm pendant lights cast a soft glow over wooden shelves stocked with bottles and cups. To the right, a single customer sits at a table, working on a laptop, which underscores the café’s appeal as both a social spot and a quiet workspace. The overall mood is cozy and inviting, with neutral tones and natural materials creating a relaxed atmosphere.",
+    "checkedAt": "2026-10-13"
+  }
+]

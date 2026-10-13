@@ -1,0 +1,88 @@
+/* Soft, consistent motion for the food photography and editorial layout. */
+:root {
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-hover: 320ms;
+}
+
+.button,
+.circle-button,
+.restaurant-card,
+.dish-card,
+.review-card {
+  transition: transform var(--motion-hover) var(--motion-ease),
+    box-shadow var(--motion-hover) var(--motion-ease),
+    background-color 220ms ease, color 220ms ease;
+}
+.hero-photo img,
+.restaurant-image img,
+.dish-image img,
+.mini-gallery img {
+  transition: transform 650ms var(--motion-ease);
+}
+.desktop-nav a,
+.site-footer nav a {
+  position: relative;
+}
+.desktop-nav a::after,
+.site-footer nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--motion-hover) var(--motion-ease);
+}
+.desktop-nav a:focus-visible::after,
+.site-footer nav a:focus-visible::after {
+  transform: scaleX(1);
+}
+.button:active,
+.circle-button:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) and (pointer: fine) {
+  .restaurant-card:hover,
+  .dish-card:hover,
+  .review-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 14px 32px #294c3d12;
+  }
+  .restaurant-image:hover img,
+  .dish-image:hover img,
+  .mini-gallery img:hover {
+    transform: scale(1.035);
+  }
+  .desktop-nav a:hover::after,
+  .site-footer nav a:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+/* Keep existing content in place and show that a pagination request is pending. */
+#destinations[aria-busy='true'] .restaurant-grid,
+#reviews[aria-busy='true'] .review-grid {
+  animation: content-loading 1100ms ease-in-out infinite alternate;
+}
+[aria-busy='true'] .pagination { cursor: progress; }
+@keyframes content-loading {
+  from { opacity: 1; }
+  to { opacity: 0.65; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .restaurant-card:hover,
+  .dish-card:hover,
+  .review-card:hover,
+  .mini-gallery img:hover,
+  .button:active,
+  .circle-button:active {
+    transform: none;
+  }
+  #destinations[aria-busy='true'] .restaurant-grid,
+  #reviews[aria-busy='true'] .review-grid {
+    animation: none;
+  }
+}
