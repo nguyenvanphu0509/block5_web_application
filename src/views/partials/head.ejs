@@ -3,22 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Block5 Kitchen — khám phá ẩm thực Sài Gòn. Ứng dụng SSR demo với Express, EJS và Supabase.">
-  <title><%= title %> · Block5 Kitchen</title>
+  <meta name="description" content="Ẩm thực Việt — khám phá ẩm thực Sài Gòn. Ứng dụng SSR demo với Express, EJS và Supabase.">
+  <title><%= title %> · Ẩm thực Việt</title>
   <link rel="icon" href="/images/greens.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/motion.css">
+  <script src="/js/motion.js" defer></script>
+  <script src="/js/restaurant-photos.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Đến nội dung chính</a>
 <header class="site-header shell">
-  <a class="brand" href="/" aria-label="Block5 Kitchen, trang chủ"><span class="brand-mark" aria-hidden="true">b<span>5</span></span><span>block5<span class="brand-sub">KITCHEN & STORIES</span></span></a>
+  <a class="brand" href="/" aria-label="Ẩm thực Việt, trang chủ"><span class="brand-logo"><img src="/images/logo.png" alt="" width="2048" height="2048"></span><span>ẨM THỰC VIỆT<span class="brand-sub">TINH HOA HƯƠNG VỊ</span></span></a>
   <nav class="desktop-nav" aria-label="Điều hướng chính">
     <a href="/#destinations">Khám phá</a><a href="/dishes" <%= currentPath.startsWith('/dishes') ? 'aria-current=page' : '' %>>Món ăn</a><a href="/#journey">Cẩm nang</a><a href="/#about">Về chúng tôi</a>
   </nav>
-  <div class="header-actions"><a class="search-icon" href="/dishes#search" aria-label="Tìm món ăn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 5 5"/></svg></a><a class="button small" href="/dishes">Khám phá món ăn <span aria-hidden="true">↗</span></a></div>
+  <div class="header-actions"><a class="button small" href="/dishes">Khám phá món ăn <span aria-hidden="true">↗</span></a></div>
   <details class="mobile-menu"><summary aria-label="Mở điều hướng">☰</summary><nav aria-label="Điều hướng mobile"><a href="/#destinations">Khám phá</a><a href="/dishes">Món ăn</a><a href="/#journey">Cẩm nang</a><a href="/#about">Về chúng tôi</a><a href="/admin">Quản trị demo</a></nav></details>
 </header>
-<% if (preview) { %><aside class="preview-note shell" role="status"><span class="status-dot"></span> Preview chỉ đọc · dữ liệu món ăn minh họa. Chưa kết nối database; thao tác lưu bị khóa.</aside><% } %>
+<% if (preview) { %><aside class="preview-note shell" role="status"><span class="status-dot"></span> Chế độ chỉ đọc · dữ liệu từ Supabase; thao tác lưu bị khóa.</aside><% } %>

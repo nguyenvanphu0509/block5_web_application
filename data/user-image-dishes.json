@@ -1,0 +1,242 @@
+[
+  {
+    "importKey": "user-unsplash:pizza:photo-1513104890138-7c749659a591",
+    "name": "Pizza phô mai sốt cà chua",
+    "description": "Pizza nướng với lớp phô mai và sốt cà chua, phù hợp dùng chung. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 150000,
+    "category": "Pizza",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2370&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1607532941433-304659e8198a",
+    "name": "Salad rau xanh cà chua",
+    "description": "Salad rau xanh và cà chua, lựa chọn nhẹ nhàng cho phần khai vị. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 65000,
+    "category": "Salad",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1607532941433-304659e8198a?q=80&w=2156&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1546069901-ba9599a7e63c",
+    "name": "Salad bowl rau củ",
+    "description": "Tô salad nhiều màu sắc, kết hợp rau củ và topping minh họa. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 85000,
+    "category": "Salad",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1760&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1623428187969-5da2dcea5ebf",
+    "name": "Salad bowl tổng hợp",
+    "description": "Tô salad tổng hợp với rau xanh và các loại topping. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 90000,
+    "category": "Salad",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1623428187969-5da2dcea5ebf?q=80&w=1364&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1610440042657-612c34d95e9f",
+    "name": "Burger bò phô mai",
+    "description": "Burger kẹp thịt, phô mai và rau xanh; khẩu phần và công thức là demo. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 95000,
+    "category": "Burger",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1610440042657-612c34d95e9f?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1573080496219-bb080dd4f877",
+    "name": "Khoai tây chiên sốt kem",
+    "description": "Khoai tây chiên dùng cùng sốt kem và topping minh họa. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 55000,
+    "category": "Ăn nhẹ",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1608219994488-cc269412b3e4",
+    "name": "Khoai tây chiên giòn",
+    "description": "Khoai tây chiên vàng giòn, dùng cùng sốt cà chua. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 45000,
+    "category": "Ăn nhẹ",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1608219994488-cc269412b3e4?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:premium_photo-1683139918895-06f8f3b9939e",
+    "name": "Gà rán và khoai tây",
+    "description": "Phần gà rán và khoai tây chiên minh họa cho thực đơn. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 120000,
+    "category": "Món chính",
+    "available": true,
+    "imagePath": "https://plus.unsplash.com/premium_photo-1683139918895-06f8f3b9939e?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:premium_photo-1664478288635-b9703a502393",
+    "name": "Mì Ý penne sốt cà chua",
+    "description": "Mì penne dùng cùng sốt cà chua và rau thơm. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 110000,
+    "category": "Mì Ý",
+    "available": true,
+    "imagePath": "https://plus.unsplash.com/premium_photo-1664478288635-b9703a502393?q=80&w=1760&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1628840042765-356cda07504e",
+    "name": "Pizza pepperoni",
+    "description": "Pizza với topping pepperoni và phô mai; thông tin món là demo. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 165000,
+    "category": "Pizza",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1628840042765-356cda07504e?q=80&w=1760&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:premium_photo-1740517280275-921d4de63081",
+    "name": "Sandwich rau củ",
+    "description": "Sandwich kẹp rau củ, gợi ý cho một bữa ăn nhẹ. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 70000,
+    "category": "Bánh mì",
+    "available": true,
+    "imagePath": "https://plus.unsplash.com/premium_photo-1740517280275-921d4de63081?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1715925717150-2a6d181d8846",
+    "name": "Bánh mì kẹp",
+    "description": "Bánh mì với phần nhân và rau thơm minh họa. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 45000,
+    "category": "Bánh mì",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1715925717150-2a6d181d8846?q=80&w=1286&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1594020292985-216a72a2c7ce",
+    "name": "Gỏi cuốn",
+    "description": "Gỏi cuốn dùng kèm nước chấm, món khai vị nhẹ nhàng. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 60000,
+    "category": "Khai vị",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1594020292985-216a72a2c7ce?q=80&w=2681&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1597345637412-9fd611e758f3",
+    "name": "Bún thịt và rau thơm",
+    "description": "Tô bún với thịt, rau thơm và rau củ; công thức cụ thể là demo. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 85000,
+    "category": "Món chính",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1597345637412-9fd611e758f3?q=80&w=2370&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1782849206170-dba15f39acb7",
+    "name": "Đồ uống trái cây tổng hợp",
+    "description": "Đồ uống trái cây nhiều màu sắc, phục vụ theo ly minh họa. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 45000,
+    "category": "Đồ uống",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1782849206170-dba15f39acb7?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1782849205997-335c93fdc6c8",
+    "name": "Đồ uống chanh và trái cây",
+    "description": "Đồ uống giải khát với chanh và trái cây, nội dung là demo. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 45000,
+    "category": "Đồ uống",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1782849205997-335c93fdc6c8?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1608270586620-248524c67de9",
+    "name": "Bia tươi",
+    "description": "Một ly bia tươi minh họa; thương hiệu và dung tích chưa được xác định. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 45000,
+    "category": "Đồ uống",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1608270586620-248524c67de9?q=80&w=2370&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1467003909585-2f8a72700288",
+    "name": "Cá hồi áp chảo",
+    "description": "Phần cá hồi dùng cùng rau củ và sốt minh họa. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 185000,
+    "category": "Hải sản",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:premium_photo-1707935175109-ba307d98bfe2",
+    "name": "Tôm và rau củ",
+    "description": "Tôm dùng cùng rau củ và chanh, gợi ý cho món chính. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 160000,
+    "category": "Hải sản",
+    "available": true,
+    "imagePath": "https://plus.unsplash.com/premium_photo-1707935175109-ba307d98bfe2?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:id",
+    "name": "Hàu với topping",
+    "description": "Phần hàu trên đá với các loại topping; cách chế biến cụ thể là demo. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 180000,
+    "category": "Hải sản",
+    "available": true,
+    "imagePath": "https://media.istockphoto.com/id/2261269195/photo/fresh-oyster-platter-on-ice-with-tobiko-crispy-garlic-and-asian-toppings.webp?a=1&b=1&s=612x612&w=0&k=20&c=LAyrzKWSRyAFP5CNhdjEXVss4I61NTP2v0Vzmi3Yuyw=",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1622549071350-226435092804",
+    "name": "Hải sản nướng tổng hợp",
+    "description": "Đĩa hải sản nướng tổng hợp, phù hợp dùng chung. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 220000,
+    "category": "Hải sản",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1622549071350-226435092804?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1448043552756-e747b7a2b2b8",
+    "name": "Nghêu hấp chanh",
+    "description": "Nghêu dùng cùng chanh và rau thơm; công thức là demo. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 95000,
+    "category": "Hải sản",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1448043552756-e747b7a2b2b8?q=80&w=2104&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1713620305225-aab6b77317e7",
+    "name": "Hải sản trong vỏ sò",
+    "description": "Phần hải sản trình bày trong vỏ sò, dùng làm món khai vị minh họa. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 150000,
+    "category": "Hải sản",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1713620305225-aab6b77317e7?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  },
+  {
+    "importKey": "user-image:photo-1605759758891-430e7885631b",
+    "name": "Sò điệp áp chảo",
+    "description": "Sò điệp áp chảo trình bày cùng rau củ và sốt minh họa. Tên, công thức và giá do người tạo dữ liệu đặt cho bài tập, không phải thông tin xác nhận từ nguồn ảnh hoặc nhà hàng.",
+    "price": 190000,
+    "category": "Hải sản",
+    "available": true,
+    "imagePath": "https://images.unsplash.com/photo-1605759758891-430e7885631b?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+    "photoType": "Ảnh minh họa"
+  }
+]

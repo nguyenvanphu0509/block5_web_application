@@ -7,7 +7,7 @@ import { testDatabase } from './helpers.js';
 
 function setup() { const { db, storage } = testDatabase(); return { app: createApp({ db, logger: { error() {} } }), db, storage }; }
 
-test('landing is semantic SSR, includes catalog sources, has no scripts', async () => {
+test('landing is semantic SSR with native GET navigation', async () => {
   const { app } = setup();
   const res = await request(app).get('/').expect(200).expect('Content-Type', /html/);
   assert.match(res.text, /Khám phá tinh hoa/);
@@ -15,8 +15,9 @@ test('landing is semantic SSR, includes catalog sources, has no scripts', async 
   assert.match(res.text, /Phở Minh/);
   assert.match(res.text, /không phải giá từng món/);
   assert.match(res.text, /Nội dung minh họa/);
-  assert.doesNotMatch(res.text, /<script\b|\bfetch\s*\(|onerror=/);
-  assert.match(res.headers['content-security-policy'], /script-src 'none'/);
+  assert.doesNotMatch(res.text, /src="\/js\/(home|restaurant-search)\.js"/);
+  assert.doesNotMatch(res.text, /onerror=/);
+  assert.match(res.headers['content-security-policy'], /script-src 'self'/);
 });
 
 test('landing search/paging/toggle preserve state, ranges are labelled correctly', async () => {
@@ -30,7 +31,7 @@ test('landing search/paging/toggle preserve state, ranges are labelled correctly
   assert.match(res.text, /gallery-mode/);
   const filtered = await request(app).get('/?destinationQ=PHỞ').expect(200);
   assert.match(filtered.text, /Phở Minh/);
-  assert.doesNotMatch(filtered.text, /Hoa Túc/);
+  assert.doesNotMatch(filtered.text.split('id="destinations"')[1].split('id="reviews"')[0], /Hoa Túc/);
   for (const query of ['destinationPage=0', 'destinationPage=1.5', 'destinationQ=a&destinationQ=b', 'reviewTab=video', 'reviewPage=-1']) await request(app).get(`/?${query}`).expect(400);
   const empty = await request(app).get('/?destinationPage=999&reviewPage=999').expect(200);
   assert.match(empty.text, /Chưa tìm thấy địa điểm/);
@@ -45,6 +46,37 @@ test('public menu search is case insensitive and detail ID validation returns 40
   await request(app).get('/dishes?q=a&q=b').expect(400);
   const empty = await request(app).get('/dishes?q=not-a-dish').expect(200);
   assert.match(empty.text, /Chưa có món phù hợp/);
+});
+
+test('restaurant search normalizes accents, filters districts and specialties, and suggests DB names', async () => {
+  const { app, storage } = setup();
+  for (const q of ['pho', 'PHỞ', 'q.1', 'quan 1', 'mon chay', 'ca tim']) {
+    const res = await request(app).get('/').query({ destinationQ: q }).expect(200);
+    assert.doesNotMatch(res.text, /Chưa tìm thấy địa điểm/);
+  }
+  const suggestions = await request(app).get('/api/restaurants/suggestions?q=pho').expect(200);
+  assert.ok(suggestions.body.suggestions.some(row => row.name.includes('Phở Minh')));
+  assert.ok(suggestions.body.suggestions.length <= 6);
+  assert.deepEqual((await request(app).get('/api/restaurants/suggestions').expect(200)).body.suggestions, []);
+  await request(app).get('/api/restaurants/suggestions?q=a&q=b').expect(400);
+  storage.restaurant[0].name = 'Tên quán từ database';
+  assert.match((await request(app).get('/').expect(200)).text, /Tên quán từ database/);
+  storage.dish[0].restaurantId = 1;
+  assert.match((await request(app).get('/restaurants/1').expect(200)).text, /63\/6 Pasteur/);
+  assert.match((await request(app).get('/dishes/1').expect(200)).text, /Tên quán từ database/);
+  await request(app).get('/restaurants/999').expect(404);
+});
+
+test('admin can manage restaurants and link dishes with unknown prices', async () => {
+  const { app, storage } = setup();
+  await request(app).get('/admin/restaurants').expect(200);
+  await request(app).get('/admin/restaurants/1/edit').expect(200);
+  await request(app).post('/admin/restaurants').type('form').send({ name:'Quán kiểm thử', cuisine:'Việt', district:'Quận 1', address:'Địa chỉ kiểm thử', notableDishes:'Phở, Bún', michelinUrl:'https://guide.michelin.com/en/test' }).expect(303);
+  assert.deepEqual(storage.restaurant.at(-1).notableDishes, ['Phở', 'Bún']);
+  await request(app).post('/admin/dishes').type('form').send({ name:'Món có quán', priceUnknown:'true', restaurantId:'1', available:'true' }).expect(303);
+  assert.equal(storage.dish.at(-1).restaurantId, 1);
+  assert.equal(storage.dish.at(-1).price, null);
+  await request(app).post('/admin/dishes').type('form').send({ name:'Sai quán', price:'5', restaurantId:'999' }).expect(400);
 });
 
 for (const [resource, fields] of Object.entries({ dishes: { name: 'Món kiểm thử', price: '25000', available: 'true' }, chefs: { name: 'Đầu bếp kiểm thử', specialty: 'Việt' }, ingredients: { name: 'Nguyên liệu kiểm thử', unit: 'g' } })) {
@@ -112,10 +144,10 @@ test('missing update, database errors, Origin checks and body limits', async () 
 });
 
 test('preview is explicitly labelled, read-only, and missing featured dishes have placeholders', async () => {
-  const db = createPreviewClient(); const app = createApp({ db, preview: true });
-  const home = await request(app).get('/').expect(200); assert.match(home.text, /Preview chỉ đọc/);
+  const db = createPreviewClient(testDatabase().db); const app = createApp({ db, preview: true });
+  const home = await request(app).get('/').expect(200); assert.match(home.text, /Chế độ chỉ đọc/);
   const form = await request(app).get('/admin/dishes/new').expect(200); assert.match(form.text, /disabled/);
   for (const method of ['post', 'patch', 'delete']) await request(app)[method](method === 'post' ? '/admin/dishes' : '/admin/dishes/1').type('form').send({}).expect(503);
-  db.dish.findMany = async () => [];
+  db.restaurant.findMany = async () => [];
   const empty = await request(app).get('/').expect(200); assert.match(empty.text, /Một hương vị mới/);
 });

@@ -1,9 +1,10 @@
 import { HttpError } from '../validators/index.js';
+import { imageSources } from '../lib/image-sources.js';
 export function securityHeaders(req, res, next) {
   res.set({
     'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin',
     'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'self'; script-src 'none'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://images.unsplash.com https://prod-pics.guide.michelin.com https://*.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+    'Content-Security-Policy': `default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src ${imageSources}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`,
   });
   next();
 }

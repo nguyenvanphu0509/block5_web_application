@@ -1,8 +1,25 @@
 <%- include('../partials/head') %>
-<main id="main" class="shell page-main"><div class="page-heading"><span class="section-badge">THE SAIGON TABLE</span><h1>Một thực đơn.<br><em>Muôn vàn cảm hứng.</em></h1><p>Món ăn và giá minh họa cho bài tập, không phải thực đơn nhà hàng thật.</p></div>
-<form class="search-form" id="search" action="/dishes" method="GET"><label class="sr-only" for="dish-search">Tìm món theo tên</label><input id="dish-search" name="q" value="<%= q %>" maxlength="120" placeholder="Tìm hương vị bạn yêu thích…"><button class="button small" type="submit">Tìm món ↗</button></form>
-<div class="catalog-toolbar"><span><%= dishes.length %> món <%= q ? `cho “${q}”` : 'trong thực đơn' %></span><a href="/dishes">Tất cả món ăn ↗</a></div>
-<% if (!dishes.length) { %><div class="empty-state"><span class="feature-icon">✳</span><h2>Chưa có món phù hợp</h2><p>Thử tên khác, hoặc quay lại thực đơn để khám phá thêm.</p><a class="button outline" href="/dishes">Xem tất cả món</a></div><% } %>
+<main id="main" class="shell page-main"><div class="page-heading"><span class="section-badge">THE SAIGON TABLE</span><h1>Một thực đơn.<br><em>Muôn vàn cảm hứng.</em></h1><p>Tìm món yêu thích hoặc sắp xếp theo quán, khu vực, giá, loại món, đầu bếp và tên món.</p></div>
+<div class="dish-search" id="search">
+<form class="search-form" action="/dishes#menu-results" method="GET">
+<input id="dish-search" type="search" name="q" value="<%= q %>" maxlength="120" placeholder="Tên món hoặc hương vị…" aria-label="Tìm món ăn">
+<% ['sort','restaurantId','district','category','chefId','ingredientId','available'].forEach(key => { if (state[key] !== null && state[key] !== undefined && state[key] !== '') { %><input type="hidden" name="<%= key %>" value="<%= state[key] %>"><% } }); %>
+<button class="button small" type="submit">Tìm món ↗</button>
+</form></div>
+<section id="menu-results" aria-label="Kết quả món ăn">
+<div class="catalog-toolbar"><span><strong><%= total %> món</strong></span><button class="menu-options-trigger" type="button" data-open-dish-options aria-haspopup="dialog" aria-controls="dish-options">Tất cả món ăn ↗</button></div>
+<dialog id="dish-options" class="dish-options-dialog" aria-labelledby="dish-options-title">
+<div class="dish-options-header"><div><span class="section-badge">THỰC ĐƠN CỦA BẠN</span><h2 id="dish-options-title">Khám phá theo cách bạn muốn</h2></div><button class="circle-button" type="button" data-close-dish-options aria-label="Đóng tùy chọn món ăn" autofocus>×</button></div>
+<p class="source-note">Chọn một cách sắp xếp để xem ngay.</p>
+<nav class="dish-sort-options" aria-label="Cách sắp xếp món ăn"><% Object.entries(sortOptions).forEach(([value,option]) => { %><a class="dish-sort-option <%= state.sort === value ? 'active' : '' %>" href="<%= href({sort:value,page:1}) %>" <%= state.sort === value ? 'aria-current=true' : '' %>><%= option.label %> <span aria-hidden="true">↗</span></a><% }) %></nav>
+<a class="back-link" href="/dishes#menu-results">Bỏ bộ lọc · Xem tất cả món ăn ↗</a>
+</dialog>
+<noscript><p><a href="/dishes?sort=name#menu-results">Tên món A–Z</a> · <a href="/dishes?sort=restaurant#menu-results">Theo nhà hàng</a> · <a href="/dishes?sort=district#menu-results">Theo khu vực</a> · <a href="/dishes?sort=price-asc#menu-results">Giá tăng dần</a></p></noscript>
+<% if (!dishes.length) { %><div class="empty-state"><span class="feature-icon">✳</span><h2><%= count && state.page > pages ? 'Trang này chưa có món' : 'Chưa có món phù hợp' %></h2><p>Thử từ khóa khác hoặc quay lại trang đầu.</p><a class="button outline" href="<%= href({page:1}) %>">Về trang đầu</a><a class="back-link" href="/dishes">Xem tất cả món</a></div><% } %>
 <div class="dish-grid"><% dishes.forEach(dish => { %><%- include('../partials/dish-card', { dish }) %><% }) %></div>
-<p class="source-note">Ảnh là minh họa tự tạo, không phải ảnh chụp món thực tế. Giá là dữ liệu demo.</p></main>
-<%- include('../partials/footer') %>
+<% if (pages) { %><nav class="pagination menu-pagination" aria-label="Phân trang món ăn">
+<% if (state.page > 1) { %><a class="circle-button" aria-label="Trang món ăn trước" href="<%= href({page:Math.min(state.page - 1,pages)}) %>">←</a><% } %>
+<% pageNumbers.forEach((page,index) => { %><% if(index && page - pageNumbers[index-1] > 1) { %><span aria-hidden="true">…</span><% } %><a class="circle-button <%= page === state.page ? 'active' : '' %>" aria-label="Trang món ăn <%= page %>" <%= page === state.page ? 'aria-current=page' : '' %> href="<%= href({page}) %>"><%= page %></a><% }) %>
+<% if (state.page < pages) { %><a class="circle-button" aria-label="Trang món ăn tiếp" href="<%= href({page:state.page+1}) %>">→</a><% } %><span class="menu-page-summary">Trang <%= state.page %> / <%= pages %> · <%= pageSize %> món/trang</span></nav><% } %>
+<p class="source-note">Giá demo không phải giá bán xác nhận của nhà hàng. Đầu bếp và nguyên liệu demo là gợi ý cho bài tập. Ảnh hồ sơ quán có thể không mô tả đúng món.</p>
+</section></main><script src="/js/dish-options.js" defer></script><%- include('../partials/footer') %>

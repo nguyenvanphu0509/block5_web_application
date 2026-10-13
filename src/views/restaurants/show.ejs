@@ -1,0 +1,19 @@
+<%- include('../partials/head') %>
+<main id="main" class="shell page-main">
+  <a class="back-link" href="/#destinations">← Khám phá quán ăn</a>
+  <div class="dish-detail">
+    <figure class="detail-image image-fallback restaurant-space"><img src="<%= restaurant.imagePath || '/images/restaurant.svg' %>" alt="<%= restaurant.isDemo ? 'Không gian minh họa cho' : 'Không gian hoặc mặt tiền' %> <%= restaurant.name %>" width="600" height="600"><figcaption><%= restaurantPhoto(restaurant).label %></figcaption></figure>
+    <section><% const photo = restaurantPhoto(restaurant); if (photo.sourceUrl) { %><a class="restaurant-photo-credit" href="<%= photo.sourceUrl %>" target="_blank" rel="noopener noreferrer">Nguồn ảnh không gian ↗</a><% } %><span class="section-badge"><%= restaurant.cuisine %></span><h1><%= restaurant.name %></h1>
+      <% if(restaurant.isDemo) { %><p class="source-note">Quán hư cấu cho bài tập. Khu vực và thực đơn là dữ liệu demo.</p><% } %><p><%= restaurant.address || 'Địa chỉ đang cập nhật' %></p>
+      <% if (restaurant.district) { %><p>Khu vực: <%= restaurant.district %></p><% } %>
+      <p class="detail-price"><%= restaurantPrice(restaurant) %><small>KHOẢNG GIÁ CỦA QUÁN</small></p>
+      <p class="detail-description">Món nổi bật: <%= restaurant.notableDishes.join(' · ') || 'Đang cập nhật' %></p>
+      <% if (restaurant.michelinUrl) { %><a class="button outline" href="<%= restaurant.michelinUrl %>" target="_blank" rel="noopener noreferrer">Xem hồ sơ Michelin ↗</a><% } %>
+    </section>
+  </div>
+  <div class="section-heading"><h2>Món ăn tại <em>quán</em></h2></div>
+  <% if (!restaurant.dishes.length) { %><p class="empty-state">Thực đơn đang cập nhật. Xem hồ sơ nguồn để biết thêm về quán.</p><% } %>
+  <div class="dish-grid"><% restaurant.dishes.forEach(dish => { %><%- include('../partials/dish-card', { dish }) %><% }) %></div>
+  <p class="source-note">Địa chỉ và món nổi bật được đối chiếu hồ sơ nguồn. Giá bổ sung cho bài tập được ghi nhãn demo; đây không phải giá bán xác nhận. Tên quận là khu vực tra cứu quen thuộc.</p>
+</main>
+<%- include('../partials/footer') %>

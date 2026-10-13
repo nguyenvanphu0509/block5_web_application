@@ -6,7 +6,7 @@ import { createPreviewClient } from './db/preview.js';
 const port = Number(process.env.PORT || 3000);
 const preview = process.env.PREVIEW_MODE === 'true';
 let db;
-try { db = preview ? createPreviewClient() : createDatabaseClient(); }
+try { const database = createDatabaseClient(); db = preview ? createPreviewClient(database) : database; }
 catch (err) { console.error(err.message); process.exit(1); }
 const app = createApp({ db, preview, origin: process.env.APP_ORIGIN || `http://localhost:${port}` });
 const server = app.listen(port, '127.0.0.1', () => {
