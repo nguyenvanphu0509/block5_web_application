@@ -24,13 +24,13 @@ test('URL images are optional, trimmed and restricted to allowed HTTPS sources',
   const data = { name: 'Ảnh kiểm tra', price: '50000', imageMode: 'url' };
   await request(app).post('/admin/dishes').type('form').send({ ...data, imagePath: '  https://images.unsplash.com/photo-example  ' }).expect(303);
   assert.equal(storage.dish.at(-1).imagePath, 'https://images.unsplash.com/photo-example');
-  await request(app).post('/admin/dishes').type('form').send({ ...data, imagePath: '' }).expect(303);
+  await request(app).post('/admin/dishes').type('form').send({ ...data, name: 'Ảnh không có URL', imagePath: '' }).expect(303);
   assert.equal(storage.dish.at(-1).imagePath, null);
   const count = storage.dish.length;
   for (const imagePath of ['https://example.com/image.jpg', 'javascript:alert(1)', 'https://user:secret@images.unsplash.com/image.jpg']) {
     await request(app).post('/admin/dishes').type('form').send({ ...data, imagePath }).expect(400);
   }
-  await request(app).post('/admin/dishes').type('form').send({ ...data, imageMode: 'other' }).expect(400);
+  await request(app).post('/admin/dishes').type('form').send({ ...data, name: 'Ảnh sai chế độ', imageMode: 'other' }).expect(400);
   assert.equal(storage.dish.length, count);
 });
 test('unsupported file types return an inline form error before upload or database write', async () => {

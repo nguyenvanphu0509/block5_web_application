@@ -54,6 +54,48 @@ export function createAdminController(db, resource, preview) {
     result.data = data;
     result.valid = !Object.keys(result.errors).length;
   }
+  function comparableName(name) {
+    return name.normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('vi');
+  }
+  async function validateDuplicates(result, currentId = null) {
+    if (!['dishes', 'chefs', 'ingredients'].includes(resource)) return;
+    if (!result.valid) return;
+    const rows = await model.findMany({
+      select: resource === 'dishes' ? { id: true, name: true, restaurantId: true } : { id: true, name: true },
+    });
+    const name = comparableName(result.data.name);
+    const duplicate = rows.some(row => row.id !== currentId && comparableName(row.name) === name
+      && (resource !== 'dishes' || row.restaurantId === result.data.restaurantId));
+    if (duplicate) {
+      result.errors.name = resource === 'dishes'
+        ? 'Món ăn này đã tồn tại tại quán đã chọn.'
+        : `Tên ${config.singular} này đã tồn tại.`;
+    }
+    if (resource === 'dishes') {
+      const newChefName = result.values.newChefName?.trim();
+      if (newChefName) {
+        const chefs = await db.chef.findMany({ select: { name: true } });
+        if (chefs.some(chef => comparableName(chef.name) === comparableName(newChefName))) {
+          result.errors.newChefName = 'Đầu bếp này đã tồn tại. Hãy chọn trong danh sách.';
+        }
+      }
+      const newIngredientNames = result.values.newIngredientName.map(value => value.trim()).filter(Boolean);
+      if (newIngredientNames.length) {
+        const ingredients = await db.ingredient.findMany({ select: { name: true } });
+        const existingNames = new Set(ingredients.map(ingredient => comparableName(ingredient.name)));
+        const submittedNames = new Set();
+        if (newIngredientNames.some(ingredientName => {
+          const key = comparableName(ingredientName);
+          const isDuplicate = existingNames.has(key) || submittedNames.has(key);
+          submittedNames.add(key);
+          return isDuplicate;
+        })) {
+          result.errors.newIngredientName = 'Nguyên liệu đã tồn tại hoặc bị lặp trong danh sách.';
+        }
+      }
+    }
+    result.valid = !Object.keys(result.errors).length;
+  }
   async function createNewRelations(result) {
     if (resource !== 'dishes') return;
     const values = result.values;
@@ -102,6 +144,7 @@ export function createAdminController(db, resource, preview) {
       result.values.imageMode = req.body.imageMode === 'file' ? 'file' : 'url';
       Object.assign(result.errors, image.errors);
       result.valid = !Object.keys(result.errors).length;
+      if (result.valid) await validateDuplicates(result);
       if (result.valid) await createNewRelations(result);
       if (result.valid) await relationData(result);
       if (!result.valid) return form(res, result.values, result.errors, null, 400);
@@ -117,6 +160,7 @@ export function createAdminController(db, resource, preview) {
       result.values.imageMode = req.body.imageMode === 'file' ? 'file' : 'url';
       Object.assign(result.errors, image.errors);
       result.valid = !Object.keys(result.errors).length;
+      if (result.valid) await validateDuplicates(result, record.id);
       if (result.valid) await createNewRelations(result);
       if (result.valid) await relationData(result, true);
       if (!result.valid) return form(res, result.values, result.errors, record.id, 400);

@@ -76,6 +76,43 @@ test('admin preserves image, demo labels and dish relationships; rejects unknown
   await request(app).post(`/admin/dishes/${id}?_method=DELETE`).expect(303);
   assert.equal(storage.dishIngredient.filter(l=>l.dishId===id).length,0);
 });
+test('admin rejects duplicate ingredient and chef names, and duplicate dishes within the same restaurant',async()=>{
+  const {app,storage}=setup(2);
+  const ingredientCount=storage.ingredient.length,chefCount=storage.chef.length,dishCount=storage.dish.length;
+  const duplicateIngredient=await request(app).post('/admin/ingredients').type('form')
+    .send({name:'  gẠo ',unit:'kg'}).expect(400);
+  assert.match(duplicateIngredient.text,/Tên nguyên liệu này đã tồn tại/);
+  const duplicateChef=await request(app).post('/admin/chefs').type('form')
+    .send({name:'an nguyễn',specialty:'Món mới'}).expect(400);
+  assert.match(duplicateChef.text,/Tên đầu bếp này đã tồn tại/);
+  assert.equal(storage.ingredient.length,ingredientCount);
+  assert.equal(storage.chef.length,chefCount);
+
+  const sameNameDifferentRestaurant=await request(app).post('/admin/dishes').type('form')
+    .send({name:'mÓN 001',price:'1000',restaurantId:'2',available:'true'}).expect(303);
+  const newDishId=Number(sameNameDifferentRestaurant.headers.location.match(/\/(\d+)\?/)[1]);
+  const duplicateDish=await request(app).post('/admin/dishes').type('form')
+    .send({name:'  món   001 ',price:'1000',restaurantId:'1',available:'true'}).expect(400);
+  assert.match(duplicateDish.text,/Món ăn này đã tồn tại tại quán đã chọn/);
+  await request(app).post(`/admin/dishes/${newDishId}?_method=PATCH`).type('form')
+    .send({name:'mÓN 001',price:'1000',restaurantId:'2',available:'true'}).expect(303);
+  assert.equal(storage.dish.length,dishCount+1);
+});
+test('dish form rejects duplicate quick-added chefs and ingredients without creating partial records',async()=>{
+  const {app,storage}=setup(1);
+  const chefCount=storage.chef.length,ingredientCount=storage.ingredient.length;
+  const duplicateChef=await request(app).post('/admin/dishes').type('form').send({
+    name:'Món kiểm tra đầu bếp',price:'50000',newChefName:'AN NGUYỄN',
+  }).expect(400);
+  assert.match(duplicateChef.text,/Đầu bếp này đã tồn tại/);
+  const duplicateIngredient=await request(app).post('/admin/dishes').type('form').send({
+    name:'Món kiểm tra nguyên liệu',price:'50000',newIngredientName:['Nguyên liệu mới','nguyên liệu  MỚI'],
+    newIngredientUnit:['g','kg'],
+  }).expect(400);
+  assert.match(duplicateIngredient.text,/Nguyên liệu đã tồn tại hoặc bị lặp/);
+  assert.equal(storage.chef.length,chefCount);
+  assert.equal(storage.ingredient.length,ingredientCount);
+});
 test('admin can create and link new restaurant, chef and ingredient from dish form',async()=>{
   const {app,storage}=setup(1);
   const created=await request(app).post('/admin/dishes').type('form').send({
