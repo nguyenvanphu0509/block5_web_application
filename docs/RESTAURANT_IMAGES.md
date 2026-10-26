@@ -4,15 +4,15 @@ Cập nhật ngày 13/10/2026, đã áp dụng trên Supabase.
 
 - 36 quán thật dùng ảnh mặt tiền hoặc nội thất tương ứng; không dùng ảnh đĩa thức ăn làm ảnh quán.
 - 3 địa điểm hư cấu dùng 3 ảnh không gian khác nhau từ Unsplash, ghi rõ “Không gian minh họa · Demo”.
-- URL ảnh, trang nguồn và metadata nằm trong `data/restaurant-space-images.json`. Link “Nguồn ảnh không gian” hiển thị trên thẻ và trang chi tiết. Những URL là nguồn bên ngoài, có thể thay đổi sau lần kiểm tra này.
+- URL ảnh, trang nguồn và metadata nằm trong `api/data/restaurant-space-images.json`. Link “Nguồn ảnh không gian” hiển thị trên thẻ và trang chi tiết. Những URL là nguồn bên ngoài, có thể thay đổi sau lần kiểm tra này.
 - Chỉ cập nhật `restaurants.imagePath` và `restaurants.photoType`; ảnh trong `dishes` không thay đổi. Bản sao URL cũ được lưu trong `.local-backups/` (đã bỏ khỏi Git).
 - Có ảnh dự phòng riêng cho nhà hàng `/images/restaurant.svg`, dùng khi nguồn ảnh lỗi; không thay bằng hình minh họa món ăn.
 
 Các lệnh đối chiếu/cập nhật lại, không tạo thêm bản ghi:
 
 ```sh
-node scripts/update-restaurant-images.js --check
-node scripts/update-restaurant-images.js --apply
+node api/scripts/update-restaurant-images.js --check
+node api/scripts/update-restaurant-images.js --apply
 ```
 
 Script yêu cầu đúng ID, tên và nhãn demo của 39 quán đã duyệt. Nếu catalog thay đổi, script dừng; cập nhật file dữ liệu có chủ đích trước khi chạy lại. Khi ghi, điều kiện URL trước đó giúp tránh đè ảnh vừa được thành viên khác sửa. Chạy lại khi URL đã đúng báo 0 thay đổi.

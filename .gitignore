@@ -6,3 +6,6 @@ coverage/
 artifacts/
 .local-backups/
 .DS_Store
+web/dist/
+test-results/
+playwright-report/

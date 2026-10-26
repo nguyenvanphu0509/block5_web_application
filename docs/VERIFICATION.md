@@ -11,7 +11,7 @@
 - Browser form tìm nhà hàng “Phở”: GET render 7 địa điểm, 6 mục/trang.
 - Browser form quản trị preview: đúng label, checkbox và nút submit disabled.
 - Ảnh/typography được kiểm tra bằng screenshot; snapshot preview lưu trong artifacts/landing-preview.jpg.
-- `.env` đã có kết nối Session pooler thật, được gitignore. Không có secret được đưa vào source.
+- `api/.env` đã có kết nối Session pooler thật, được gitignore. Không có secret được đưa vào source.
 - `db:check` và `db:push` thành công trên Supabase project block5-dev. Direct endpoint chỉ có IPv6; đã đổi sang Session pooler 5432 theo endpoint trên dashboard.
 - Integration PostgreSQL thật đạt 1/1: tạo schema UUID riêng và CRUD cả ba model; schema test đã được xóa sau khi chạy. TEST_DATABASE_URL được cấp riêng cho tiến trình kiểm thử, không lưu thêm vào .env.
 - `npm start` đang chạy với database thật. Bảy trang landing/món/chi tiết/quản trị/form thêm trả 200 và không còn nhãn preview.
@@ -33,7 +33,7 @@ Kết nối và nghiệm thu database đã hoàn tất. Các lần chạy tiếp
 - Không có tham chiếu michelin-restaurants.json trong src/public/scripts/prisma. Preview cũng đọc database.
 - Địa chỉ và món có đối chiếu nguồn trong docs/restaurant-provenance.md. Các hồ sơ chưa có món cụ thể giữ danh sách trống; giá món chưa xác nhận lưu null.
 - npm test: 16/16 đạt, gồm tìm không dấu, khu vực, món nổi bật, API gợi ý, liên kết quán–món và CRUD.
-- node scripts/test-catalog-migration.js: đạt trong schema riêng trên PostgreSQL Supabase; kiểm tra archive, giữ món người dùng, chạy lại không nhân đôi và trigger cập nhật tìm kiếm khi đổi món. Schema thử đã dọn.
+- node api/scripts/test-catalog-migration.js: đạt trong schema riêng trên PostgreSQL Supabase; kiểm tra archive, giữ món người dùng, chạy lại không nhân đôi và trigger cập nhật tìm kiếm khi đổi món. Schema thử đã dọn.
 - Browser với dữ liệu thật: nhập pho xuất hiện gợi ý; chọn bằng phím mũi tên/Enter cập nhật kết quả tại chỗ; nút Món chay tìm Chay Garden; không có lỗi JavaScript.
 - Thay đổi quán: /admin/restaurants. Thêm/sửa món và chọn quán: /admin/dishes.
 - Dùng npm run db:migrate:catalog cho migration này; db:push riêng không cài trigger. Không có seed demo; dữ liệu mới cần nhập qua trang quản trị hoặc các script migration/import phù hợp.

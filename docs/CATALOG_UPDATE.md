@@ -12,7 +12,7 @@ Link “Tất cả món ăn ↗” bỏ toàn bộ bộ lọc và trở về th�
 
 Mốc kiểm tra trước bổ sung: 88 món, 36 quán, 4 đầu bếp, 10 nguyên liệu; 63 món thiếu giá, 33 món thiếu photoType, 25 món chưa gắn quán.
 
-- Giá thiếu được bổ sung theo quy tắc demo trong `data/catalog-enrichment.js`, với `priceIsDemo=true`. Giá đã có được giữ lại. Giá từ 24 món ảnh người dùng trước đây cũng được đánh dấu demo.
+- Giá thiếu được bổ sung theo quy tắc demo trong `api/data/catalog-enrichment.js`, với `priceIsDemo=true`. Giá đã có được giữ lại. Giá từ 24 món ảnh người dùng trước đây cũng được đánh dấu demo.
 - Không gán các món ảnh Unsplash vào nhà hàng Michelin. Ba quán hư cấu riêng: Bếp Quốc Tế, Bếp Hải Sản và Góc Cà Phê; `isDemo=true`, tên có hậu tố Demo, địa chỉ và khu vực ghi minh họa.
 - Tám đầu bếp mới là nhân vật hư cấu. Quan hệ đầu bếp/nguyên liệu được suy ra để làm bài tập, không phải công thức hay nhân sự xác nhận của quán. Các món được bổ sung quan hệ có `recipeIsDemo=true`.
 - Giá, ảnh, tên và liên kết đã có không bị thay thế bởi script bổ sung. Không tạo lại món đã xóa, không reset bảng.
@@ -28,12 +28,12 @@ Form quản trị món có lựa chọn quán, đầu bếp, nhiều nguyên li�
 
 ## Chạy lại
 
-Từ thư mục project, `.env` đã có DATABASE_URL:
+Từ thư mục project, `api/.env` đã có DATABASE_URL:
 
 ```sh
-node scripts/migrate-dish-relations.js --apply
+node api/scripts/migrate-dish-relations.js --apply
 npm run db:generate
-node scripts/enrich-catalog.js --apply
+node api/scripts/enrich-catalog.js --apply
 npm start
 ```
 
