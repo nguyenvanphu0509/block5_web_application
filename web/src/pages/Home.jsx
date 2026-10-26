@@ -5,11 +5,12 @@ import { useLoad } from '../hooks.js';
 import { Pager, Picture, RestaurantCard, StateView } from '../components.jsx';
 
 function RestaurantSearch({ initial, onSearch }) {
-  const [text, setText] = useState(initial), [suggestions, setSuggestions] = useState([]), [active, setActive] = useState(-1);
+  const [text, setText] = useState(initial), [suggestions, setSuggestions] = useState([]), [active, setActive] = useState(-1), [suggestionPending, setSuggestionPending] = useState(false);
   useEffect(() => {
-    if (!text.trim() || text === initial) { setSuggestions([]); return; }
+    if (!text.trim() || text === initial) { setSuggestions([]); setSuggestionPending(false); return; }
     const controller = new AbortController();
-    const timer = setTimeout(() => api(`/restaurants/suggestions?q=${encodeURIComponent(text)}`, { signal: controller.signal }).then(x => { if (!controller.signal.aborted) { setSuggestions(x.data); setActive(-1); } }).catch(() => { if (!controller.signal.aborted) setSuggestions([]); }), 250);
+    setSuggestionPending(true);
+    const timer = setTimeout(() => api(`/restaurants/suggestions?q=${encodeURIComponent(text)}`, { signal: controller.signal }).then(x => { if (!controller.signal.aborted) { setSuggestions(x.data); setActive(-1); } }).catch(() => { if (!controller.signal.aborted) setSuggestions([]); }).finally(() => { if (!controller.signal.aborted) setSuggestionPending(false); }), 250);
     return () => { clearTimeout(timer); controller.abort(); };
   }, [text, initial]);
   const choose = value => { setText(value); setSuggestions([]); onSearch(value); };
@@ -17,7 +18,7 @@ function RestaurantSearch({ initial, onSearch }) {
     if (e.key === 'Escape') { setSuggestions([]); setActive(-1); }
     if (e.key === 'ArrowDown' && suggestions.length) { e.preventDefault(); setActive(x => (x + 1) % suggestions.length); }
     if (e.key === 'ArrowUp' && suggestions.length) { e.preventDefault(); setActive(x => (x - 1 + suggestions.length) % suggestions.length); }
-  }}/><button className="button small">Tìm quán ăn ↗</button></form>{suggestions.length > 0 && <ul id="restaurant-suggestions" className="suggestions" role="listbox">{suggestions.map((x, i) => <li key={x.id} id={`suggestion-${i}`} role="option" aria-selected={i === active}><button type="button" onClick={() => choose(x.name)}>{x.name} · {x.district}</button></li>)}</ul>}</>;
+  }}/><button className="button small">Tìm quán ăn ↗</button></form>{suggestionPending && <p className="suggestion-loading" role="status">Đang tải…</p>}{suggestions.length > 0 && <ul id="restaurant-suggestions" className="suggestions" role="listbox">{suggestions.map((x, i) => <li key={x.id} id={`suggestion-${i}`} role="option" aria-selected={i === active}><button type="button" onClick={() => choose(x.name)}>{x.name} · {x.district}</button></li>)}</ul>}</>;
 }
 export function Home() {
   const [params, setParams] = useSearchParams();

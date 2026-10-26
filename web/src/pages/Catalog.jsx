@@ -33,7 +33,7 @@ export function Catalog() {
       <label>Hiển thị<select aria-label="Kiểu phân trang" value={view} onChange={e => change({ view: e.target.value })}><option value="pages">Số trang</option><option value="more">Tải thêm</option><option value="infinite">Cuộn vô hạn</option></select></label>
       <label>Món mỗi trang<select aria-label="Món mỗi trang" value={params.get('pageSize') || '12'} onChange={e => change({ pageSize: e.target.value })}>{[...new Set([6,12,24,48,100, Number(params.get('pageSize') || 12)])].filter(n => Number.isInteger(n) && n > 0 && n <= 100).sort((a,b) => a-b).map(n => <option key={n}>{n}</option>)}</select></label>
     </div>
-    <div className="catalog-toolbar"><p className="source-note">Tìm, lọc và sắp xếp trên toàn bộ kết quả. Hỗ trợ gõ không dấu.</p>{config.result && <SortDialog sorts={config.result.data.sorts} current={params.get('sort') || 'default'} href={sort => href({ sort, page: 1 })}/>}<button className="button outline small" onClick={() => { setSearchReset(value => value + 1); setParams({}); }}>Xóa điều kiện</button></div>
+    <div className="catalog-toolbar"><p className="source-note">Tìm, lọc và sắp xếp trên toàn bộ kết quả. Hỗ trợ gõ không dấu.</p>{config.status === 'loading' && <span className="catalog-config-loading" role="status">Đang tải…</span>}{config.result && <SortDialog sorts={config.result.data.sorts} current={params.get('sort') || 'default'} href={sort => href({ sort, page: 1 })}/>}<button className="button outline small" onClick={() => { setSearchReset(value => value + 1); setParams({}); }}>Xóa điều kiện</button></div>
     {view !== 'pages' && <p className="source-note">Mở lại liên kết hoặc tải lại trang sẽ bắt đầu từ phần đầu của kết quả.</p>}
     <CatalogResults key={`${view}:${query}`} query={query.toString()} view={view} href={href} onCategories={setCategories}/>
     <p className="source-note">Giá demo không phải giá bán xác nhận. Món có ghi “Dữ liệu demo Block 7” dùng cho bài tập.</p>
@@ -101,10 +101,10 @@ function CatalogResults({ query, view, href, onCategories }) {
   }, [view, result, pending, error, load]);
   return <section id="menu-results" aria-busy={pending}>
     {result && <><p role="status">Đang hiển thị {result.items.length} / <strong>{result.total} món phù hợp</strong></p><div className="dish-grid">{result.items.map(dish => <DishCard key={dish.id} dish={dish}/>)}</div>{!result.items.length && <p className="empty-state">Chưa có món phù hợp ở trang này.</p>}{view === 'pages' && <Pager page={result.page} pages={Math.max(1, Math.ceil(result.total / result.pageSize))} href={page => href({ page })}/>}</>}
-    {pending && <p role="status">Đang tải…</p>}
+    {pending && (!result || view === 'pages') && <p className="catalog-loading-status" role="status">Đang tải…</p>}
     {error && <div role="alert"><p>{error.message}</p><button className="button outline" onClick={load}>Thử lại</button></div>}
-    {view !== 'pages' && result && !ended.current && !error && <button className="button outline" disabled={pending} onClick={load}>{pending ? 'Đang tải…' : 'Tải thêm'}</button>}
-    {view !== 'pages' && result && ended.current && <p role="status">Đã tải hết kết quả.</p>}
+    {view !== 'pages' && result && !ended.current && !error && <button className="button outline catalog-load-more" disabled={pending} onClick={load}>{pending ? 'Đang tải…' : 'Tải thêm'}</button>}
+    {view !== 'pages' && result && ended.current && <p className="catalog-loading-status" role="status">Đã tải hết kết quả.</p>}
     <div ref={sentinel} aria-hidden="true" style={{ height: 1 }}/>
   </section>;
 }

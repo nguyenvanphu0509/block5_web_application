@@ -31,6 +31,20 @@ for (const [resource, payload] of Object.entries({ dishes: { name: 'Món thử',
     assert.equal((await request(app).get(`${base}/${id}`)).body.error.code, 'NOT_FOUND');
   });
 }
+for (const [resource, payload] of Object.entries({ chefs: { name: 'Bếp phân trang', specialty: 'Món Việt' }, ingredients: { name: 'Nguyên liệu phân trang', unit: 'g' }, restaurants: { name: 'Quán phân trang', cuisine: 'Việt', notableDishes: ['Phở'] } })) {
+  test(`API ${resource}: collection pages contain at most 12 records`, async () => {
+    const { app } = setup();
+    for (let i = 0; i < 13; i++) await request(app).post(`/api/${resource}`).send({ ...payload, name: `${payload.name} ${i}` }).expect(200);
+    const first = await request(app).get(`/api/${resource}`).expect(200);
+    const second = await request(app).get(`/api/${resource}`).query({ page: 2 }).expect(200);
+    assert.equal(first.body.meta.page, 1);
+    assert.equal(first.body.meta.pageSize, 12);
+    assert.equal(first.body.data.length, 12);
+    assert.equal(second.body.meta.page, 2);
+    assert.equal(second.body.meta.total, first.body.meta.total);
+    assert.equal(second.body.data.length, second.body.meta.total - 12);
+  });
+}
 test('API: technical errors and CORS including readable error responses', async () => {
   const { app, db } = setup();
   for (const path of ['/api/bok', '/api', '/dishes/1']) {

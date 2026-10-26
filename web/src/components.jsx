@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { resources } from '../../shared/resources.js';
 
 export const money = value => value == null ? 'Hỏi quán' : `${Number(value).toLocaleString('vi-VN')} ₫`;
@@ -26,7 +26,7 @@ export function DishCard({ dish }) { return <article className="dish-card"><Link
 export function RestaurantCard({ restaurant: x }) { return <article className="restaurant-card"><Link className="restaurant-image image-fallback restaurant-space" to={`/restaurants/${x.id}`}><Picture src={x.imagePath} alt={`Không gian ${x.name}`} fallback="/images/restaurant.svg" width="500" height="500" loading="lazy"/><span className="photo-badge">{x.photo?.label || 'Ảnh quán'}</span><span className="image-arrow">↗</span></Link><div className="restaurant-content"><div className="eyebrow">{x.cuisine}{x.isDemo && ' · Demo'}</div><h3><Link to={`/restaurants/${x.id}`}>{x.name}</Link></h3><p className="restaurant-address">{x.address || 'Địa chỉ đang cập nhật'}</p><p className="restaurant-area">{x.district}</p><p className="restaurant-specialties">{x.notableDishes?.join(' · ')}</p><External href={x.photo?.sourceUrl} className="restaurant-photo-credit">Nguồn ảnh không gian ↗</External><div className="restaurant-bottom"><span><RestaurantPrice record={x}/></span><External href={x.michelinUrl}>MICHELIN ↗</External></div></div></article>; }
 export function Pager({ page = 1, pages = 1, href, label = 'Phân trang' }) {
   const numbers = pages <= 12 ? Array.from({ length: pages }, (_, i) => i + 1) : [...new Set([1, pages, page - 2, page - 1, page, page + 1, page + 2])].filter(x => x > 0 && x <= pages).sort((a, b) => a - b);
-  return <nav className="pagination menu-pagination" aria-label={label}>{page > 1 && <Link aria-label="Trang trước" className="circle-button" to={href(Math.min(page - 1, pages))}>←</Link>}{numbers.map((n, i) => <span key={n}>{i > 0 && n - numbers[i - 1] > 1 && '…'}<Link className={`circle-button ${n === page ? 'active' : ''}`} aria-current={n === page ? 'page' : undefined} aria-label={`Trang ${n}`} to={href(n)}>{n}</Link></span>)}{page < pages && <Link aria-label="Trang tiếp" className="circle-button" to={href(page + 1)}>→</Link>}<span>Trang {page} / {pages}</span></nav>;
+  return <nav className="pagination menu-pagination" aria-label={label}>{page > 1 && <Link aria-label="Trang trước" className="circle-button" to={href(Math.min(page - 1, pages))}>←</Link>}{numbers.map((n, i) => <Fragment key={n}>{i > 0 && n - numbers[i - 1] > 1 && <span className="pagination-ellipsis" aria-hidden="true">…</span>}<Link className={`circle-button ${n === page ? 'active' : ''}`} aria-current={n === page ? 'page' : undefined} aria-label={`Trang ${n}`} to={href(n)}>{n}</Link></Fragment>)}{page < pages && <Link aria-label="Trang tiếp" className="circle-button" to={href(page + 1)}>→</Link>}<span>Trang {page} / {pages}</span></nav>;
 }
 export function SortDialog({ sorts, current, href }) {
   const dialog = useRef(null), trigger = useRef(null);

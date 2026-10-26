@@ -216,6 +216,13 @@ p {
   color: white;
   transform: translateY(-2px);
 }
+.pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+}
 .image-fallback {
   background: #e0e8de url("/images/greens.svg") center/cover no-repeat;
   overflow: hidden;
@@ -740,6 +747,26 @@ select:focus {
   margin: 25px auto 0;
   max-width: 730px;
   line-height: 1.8;
+}
+.catalog-loading-status,
+.catalog-load-more {
+  display: block;
+  width: fit-content;
+  margin: 28px auto 0;
+  text-align: center;
+}
+.catalog-load-more {
+  margin-top: 32px;
+  font-weight: 600;
+}
+.catalog-config-loading,
+.suggestion-loading {
+  color: var(--muted);
+  font-size: 11px;
+}
+.suggestion-loading {
+  margin: 10px 0 0;
+  text-align: center;
 }
 .empty-state {
   text-align: center;
