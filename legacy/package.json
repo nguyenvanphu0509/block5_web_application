@@ -1,0 +1,16 @@
+{
+  "name": "block5-legacy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "ejs": "3.1.10",
+    "express": "5.3.0",
+    "method-override": "3.0.0",
+    "multer": "^2.4.0"
+  }
+}

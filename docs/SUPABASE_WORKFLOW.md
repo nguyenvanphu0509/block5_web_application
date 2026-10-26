@@ -1,3 +1,5 @@
+> Tài liệu có các ghi nhận lịch sử Block 5. Cấu trúc và seed hiện tại được mô tả trong [README](../README.md) và [Block 6](BLOCK6.md); seed hiện có ở `api/prisma/seed.js`.
+
 # Quy trình cấu hình và đẩy dữ liệu lên Supabase
 
 Tài liệu này ghi lại quy trình từ mục 3 trở đi: cấu hình kết nối Supabase, tạo schema, chạy migration, nạp dữ liệu và vận hành ứng dụng.
@@ -6,9 +8,9 @@ Migration: thay đổi cấu trúc database, như tạo bảng hoặc thêm cộ
 Seed: thêm dữ liệu mẫu, như các món ăn và URL ảnh.
 
 Kiểm tra URL hiện tại trên Supabase, chưa ghi dữ liệu:
-node scripts/update-dish-images.js --check
+node api/scripts/update-dish-images.js --check
 3. Cập nhật URL mới vào database thật:
-node scripts/update-dish-images.js --apply
+node api/scripts/update-dish-images.js --apply
 
 CSP = Content Security Policy → Chính sách bảo mật nội dung.
 Đây là một cơ chế bảo mật của trình duyệt, giúp website kiểm soát những nguồn nào được phép tải nội dung, chẳng hạn như hình ảnh, JavaScript, CSS, font và các tài nguyên khác.
@@ -19,7 +21,7 @@ CSP = Content Security Policy → Chính sách bảo mật nội dung.
 Tạo file môi trường từ file mẫu:
 
 ```bash
-cp .env.example .env
+cp api/.env.example api/.env
 ```
 
 Trong Supabase Dashboard, lấy chuỗi kết nối tại:
@@ -28,7 +30,7 @@ Trong Supabase Dashboard, lấy chuỗi kết nối tại:
 Connect → Connection string → Session pooler
 ```
 
-Project này dùng Session pooler với port `5432`. Giá trị trong `.env` có dạng:
+Project này dùng Session pooler với port `5432`. Giá trị trong `api/.env` có dạng:
 
 ```env
 DATABASE_URL="postgresql://postgres.PROJECT_REF:PASSWORD@POOLER_HOST:5432/postgres"
@@ -63,7 +65,7 @@ Service role key chỉ được dùng ở server, không đưa vào frontend, kh
 
 ## 4. Kiểm tra kết nối và tạo Prisma Client
 
-Sau khi điền `.env`, kiểm tra kết nối:
+Sau khi điền `api/.env`, kiểm tra kết nối:
 
 ```bash
 npm run db:check
@@ -71,7 +73,7 @@ npm run db:check
 
 Lệnh này chỉ chạy `SELECT 1`, không tạo hoặc sửa dữ liệu.
 
-Tiếp theo sinh Prisma Client từ `prisma/schema.prisma`:
+Tiếp theo sinh Prisma Client từ `api/prisma/schema.prisma`:
 
 ```bash
 npm run db:generate
@@ -106,7 +108,7 @@ dishes.restaurantId → restaurants.id
 
 Khi restaurant bị xóa, `restaurantId` của các món liên quan được đặt thành `NULL` nhờ `onDelete: SetNull`.
 
-`db:push` chỉ đồng bộ schema trong `prisma/schema.prisma`. Nó không tự chạy các trigger, hàm chuẩn hóa tìm kiếm, bước backup hoặc logic chuyển catalog trong migration SQL.
+`db:push` chỉ đồng bộ schema trong `api/prisma/schema.prisma`. Nó không tự chạy các trigger, hàm chuẩn hóa tìm kiếm, bước backup hoặc logic chuyển catalog trong migration SQL.
 
 ## 6. Chạy migration catalog
 
@@ -116,10 +118,10 @@ Sau khi tạo schema gốc, chạy:
 npm run db:migrate:catalog
 ```
 
-Script `scripts/migrate-restaurants.js` đọc và chạy:
+Script `api/scripts/migrate-restaurants.js` đọc và chạy:
 
 ```text
-prisma/migrations/20261012_restaurant_catalog/migration.sql
+api/prisma/migrations/20261012_restaurant_catalog/migration.sql
 ```
 
 Migration này:
@@ -199,7 +201,7 @@ Script này dùng thư viện `pg` để chạy SQL trực tiếp, phù hợp v�
 
 ### 8.3. Dữ liệu demo
 
-Trước đây project có `prisma/seed.js` và lệnh `npm run db:seed` để tạo 12 món, 4 đầu bếp và 10 nguyên liệu demo. File seed đã được xóa, nên dữ liệu mới cần được nhập qua trang quản trị hoặc script import/migration phù hợp.
+Trước đây project có `api/prisma/seed.js` và lệnh `npm run db:seed` để tạo 12 món, 4 đầu bếp và 10 nguyên liệu demo. File seed đã được xóa, nên dữ liệu mới cần được nhập qua trang quản trị hoặc script import/migration phù hợp.
 
 ## 9. Ảnh và Supabase Storage
 
@@ -225,7 +227,7 @@ Chọn file
 → Lưu URL vào dishes.imagePath
 ```
 
-Ảnh local mặc định vẫn nằm trong `public/images/`; chúng không tự động được đưa lên Supabase Storage.
+Ảnh local mặc định vẫn nằm trong `web/public/images/`; chúng không tự động được đưa lên Supabase Storage.
 
 ## 10. Kiểm tra dữ liệu sau khi push
 
@@ -263,7 +265,7 @@ LIMIT 10;
 
 ## 11. Khi thay đổi schema
 
-1. Sửa model trong `prisma/schema.prisma`.
+1. Sửa model trong `api/prisma/schema.prisma`.
 2. Chạy `npm run db:generate`.
 3. Xem kỹ thay đổi schema.
 4. Chạy `npm run db:push` trên database phù hợp.
@@ -298,4 +300,4 @@ DATABASE_URL
 SUPABASE_SERVICE_ROLE_KEY
 ```
 
-File `.env` phải nằm ngoài Git. Chỉ commit `.env.example` với giá trị mẫu.
+File `api/.env` phải nằm ngoài Git. Chỉ commit `api/.env.example` với giá trị mẫu.
