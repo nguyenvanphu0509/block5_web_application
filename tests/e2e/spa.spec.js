@@ -7,6 +7,34 @@ test.beforeEach(async ({ page }) => {
 });
 test.afterEach(async ({ page }) => { expect(page.__reactErrors).toEqual([]); });
 
+test('review pagination keeps the layout while loading and replaces the reviews', async ({ page }) => {
+  await page.goto('/?destinationQ=pho#reviews');
+  await expect(page.locator('.review-person strong').first()).toHaveText('Mai An');
+  const cards = page.locator('.review-card');
+  const restaurants = page.locator('.restaurant-card');
+  const restaurantCount = await restaurants.count();
+  let release;
+  const waiting = new Promise(resolve => { release = resolve; });
+  await page.route('**/api/home?**reviewPage=2*', async route => {
+    await waiting;
+    await route.continue();
+  });
+  const pager = page.getByRole('navigation', { name: 'Phân trang cảm hứng' });
+  try {
+    await pager.getByRole('link', { name: 'Trang 2', exact: true }).click();
+    await expect(page.locator('#reviews')).toHaveAttribute('aria-busy', 'true');
+    await expect(cards).toHaveCount(3);
+    await expect(restaurants).toHaveCount(restaurantCount);
+    await expect(page.locator('.review-person strong').first()).toHaveText('Mai An');
+  } finally { release(); }
+  await expect(page.locator('.review-person strong')).toHaveText(['Thảo Vy', 'Quốc Nam', 'Ngọc Hà']);
+  await expect(pager.getByRole('link', { name: 'Trang 2', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(page).toHaveURL(/destinationQ=pho&reviewPage=2#reviews/);
+  await expect.poll(() => page.locator('#reviews').evaluate(el => Math.abs(el.getBoundingClientRect().top - 30))).toBeLessThan(2);
+  await page.goBack();
+  await expect(page.locator('.review-person strong')).toHaveText(['Mai An', 'Hải Minh', 'Linh Chi']);
+});
+
 test('direct URLs, reload, notFound and technical errors', async ({ page }) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   for (const path of ['/dishes', '/dishes/1', '/admin/dishes', '/admin/dishes/new', '/admin/dishes/1/edit', '/admin/dishes/1/delete', '/admin/chefs', '/admin/ingredients', '/admin/restaurants', '/restaurants/1']) {
