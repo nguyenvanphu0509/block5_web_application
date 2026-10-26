@@ -72,7 +72,8 @@ export async function listRecords(db, resource, model, query) {
   if (resource !== 'dishes') {
     const rows = await model.findMany({ ...(resource === 'restaurants' ? { include: { dishes: true } } : {}), orderBy: { id: 'asc' } });
     const filtered = resource === 'restaurants' ? filterRestaurants(rows, state.q) : rows.filter(x => normalizeSearch(x.name).includes(normalizeSearch(state.q)));
-    return { data: filtered, meta: { count: filtered.length, preview: false } };
+    const start = (state.page - 1) * state.pageSize;
+    return { data: filtered.slice(start, start + state.pageSize), meta: { count: filtered.length, total: filtered.length, page: state.page, pageSize: state.pageSize, preview: false } };
   }
   const queries = dishQueries(state);
   return db.$transaction(async tx => {
