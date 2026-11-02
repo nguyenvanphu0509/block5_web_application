@@ -14,16 +14,14 @@ const lines=createInterface({input:process.stdin,crlfDelay:Infinity});
 try{
  await mkdir('legacy/artifacts',{recursive:true});
  await page.goto('http://localhost:3001/register',{waitUntil:'domcontentloaded'});
- await page.waitForFunction(()=>document.querySelector('[data-captcha] img')?.naturalWidth>0&&!document.querySelector('[type=submit]').disabled);
+ await page.waitForSelector('.g-recaptcha',{timeout:15000});
  await page.locator('[name=email]').fill(address);
  await page.locator('[name=password]').fill(password);
  await page.locator('[name=name]').fill('Kiểm thử OTP');
- await page.locator('[data-captcha] img').screenshot({path:'legacy/artifacts/real-otp-captcha.png'});
- console.log(JSON.stringify({state:'CAPTCHA_READY',email:address}));
+ console.log(JSON.stringify({state:'RECAPTCHA_READY',email:address}));
  for await(const line of lines){
   const command=JSON.parse(line);
   if(command.action==='register'){
-   await page.locator('[name=captcha]').fill(command.code);
    const response=page.waitForResponse(r=>r.request().method()==='POST'&&new URL(r.url()).pathname==='/register');
    await page.locator('[type=submit]').first().click();const r=await response;
    await page.waitForLoadState('domcontentloaded');

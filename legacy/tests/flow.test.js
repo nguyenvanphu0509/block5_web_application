@@ -4,11 +4,11 @@ import {readFile} from 'node:fs/promises';
 import {newDb} from 'pg-mem';
 import session from 'express-session';
 import request from 'supertest';
-import {createAuth} from '../src/auth/index.js';
+import {createAuth as createAuthImplementation} from '../src/auth/index.js';
 import {createApp} from '../src/app.js';
 import {createFixture} from '../../tests/fixtures.js';
-import {mac} from '../src/auth/crypto.js';
 import {browserLaunchOptions} from '../scripts/browser-launch.js';
+const createAuth = options => createAuthImplementation({recaptchaVerifier: async () => true, ...options});
 
 test('registration → dedicated OTP URL → login; no environment files or real email', async () => {
  const memory = newDb();
@@ -22,11 +22,7 @@ test('registration → dedicated OTP URL → login; no environment files or real
  const csrfFrom=res=>res.text.match(/name="_csrf" value="([^"]+)"/)[1];
  const register=await browser.get('/register').expect(200);
  const csrf=csrfFrom(register);
- const challenge=await browser.get('/captcha?purpose=register').expect(200);
- await pool.query('UPDATE block8_auth.captcha SET hash=$1 WHERE id=$2',[mac('ABC234'),challenge.body.id]);
- const image=await browser.get(challenge.body.imageUrl).expect(200);
- assert.match(image.headers['content-type'],/image\/svg/);
- const payload={_csrf:csrf,email:'New@Example.com',password:'valid-long-password-123',captcha:'  abc234  ',challengeId:challenge.body.id};
+ const payload={_csrf:csrf,email:'New@Example.com',password:'valid-long-password-123'};
  await browser.post('/register').type('form').send(payload).expect(303).expect('Location','/activate');
  assert.equal(messages.length,1);
  assert.equal((await pool.query('SELECT * FROM block8_auth.users')).rows.length,1);
@@ -49,9 +45,7 @@ test('registration → dedicated OTP URL → login; no environment files or real
  await browser.get('/admin').expect(302).expect('Location','/admin/dishes');
  const duplicateRegister=await browser.get('/register').expect(200);
  const duplicateCsrf=csrfFrom(duplicateRegister);
- const duplicateChallenge=await browser.get('/captcha?purpose=register').expect(200);
- await pool.query('UPDATE block8_auth.captcha SET hash=$1 WHERE id=$2',[mac('ABC234'),duplicateChallenge.body.id]);
- const duplicate=await browser.post('/register').type('form').send({_csrf:duplicateCsrf,email:'NEW@example.com',password:payload.password,captcha:'ABC234',challengeId:duplicateChallenge.body.id}).expect(400);
+ const duplicate=await browser.post('/register').type('form').send({_csrf:duplicateCsrf,email:'NEW@example.com',password:payload.password}).expect(400);
  assert.match(duplicate.text,/Email này đã được đăng ký/);
  assert.equal(messages.length,1,'active accounts must not receive another activation email');
  await pool.end();
@@ -59,7 +53,6 @@ test('registration → dedicated OTP URL → login; no environment files or real
 
 test('browser: displayed CAPTCHA, double-click protection, OTP page and login redirect', async () => {
  const {chromium}=await import('playwright');
- const {default:svgCaptcha}=await import('svg-captcha');
  const memory=newDb();const {Pool}=memory.adapters.createPg();const pool=new Pool();
  await pool.query(await readFile(new URL('../migrations/001-auth.sql',import.meta.url),'utf8'));
  const messages=[];let app;
@@ -75,16 +68,10 @@ test('browser: displayed CAPTCHA, double-click protection, OTP page and login re
    const page=await browser.newPage({viewport:{width:390,height:1000}});
    const base=`http://127.0.0.1:${server.address().port}`;
    await page.route(/^https:\/\//,route=>route.abort());
-   await page.route('**/captcha?purpose=*',async route=>{
-     const response=await route.fetch();const data=await response.json();
-     await pool.query('UPDATE block8_auth.captcha SET hash=$1,image=$2 WHERE id=$3',[mac('ABC234'),svgCaptcha('ABC234',{width:220,height:70}),data.id]);
-     await route.fulfill({response});
-   });
    await page.goto(base+'/register',{waitUntil:'domcontentloaded'});
-   await page.waitForFunction(()=>document.querySelector('[data-captcha] img')?.naturalWidth>0&&!document.querySelector('[type=submit]').disabled);
+   await page.waitForFunction(()=>!document.querySelector('[type=submit]').disabled);
    await page.locator('[name=email]').fill('browser@example.com');
    await page.locator('[name=password]').fill('valid-browser-password-123');
-   await page.locator('[name=captcha]').fill(' abc234 ');
    const submitted=page.waitForResponse(response=>response.request().method()==='POST'&&new URL(response.url()).pathname==='/register');
    await page.locator('[type=submit]').first().evaluate(button=>{button.click();button.click();});
    const registration=await submitted;assert.equal(registration.status(),303);

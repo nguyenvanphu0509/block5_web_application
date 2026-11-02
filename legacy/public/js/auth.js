@@ -9,48 +9,6 @@
       button.querySelector('[data-eye-slash]').toggleAttribute('hidden', visible);
     });
   }
-  for (const box of document.querySelectorAll('[data-captcha]')) {
-    const form = box.closest('form');
-    const image = box.querySelector('img');
-    const input = box.querySelector('[name=captcha]');
-    const id = box.querySelector('[name=challengeId]');
-    const refreshButton = box.querySelector('[data-refresh-captcha]');
-    const submitButton = form.querySelector('[type=submit]');
-    const status = box.querySelector('[data-captcha-status]');
-    let loading = false;
-    async function refresh() {
-      if (loading || form.dataset.submitting) return;
-      loading = true;
-      submitButton.disabled = true;
-      refreshButton.disabled = true;
-      input.disabled = true;
-      id.value = '';
-      image.removeAttribute('src');
-      status.textContent = 'Đang tải mã xác nhận…';
-      try {
-        const response = await fetch(`/captcha?purpose=${box.dataset.captcha}`, {cache:'no-store'});
-        if (!response.ok) throw new Error();
-        const data = await response.json();
-        // Keep the displayed image and challenge ID in sync, including slow networks.
-        const loaded = new Image();
-        loaded.src = data.imageUrl;
-        await loaded.decode();
-        image.src = loaded.src;
-        id.value = data.id;
-        input.value = '';
-        input.disabled = false;
-        submitButton.disabled = false;
-        status.textContent = 'Nhập 6 ký tự trong ảnh. Mã có hiệu lực 2 phút, dùng một lần.';
-      } catch {
-        status.textContent = 'Không tải được mã. Bấm “Đổi mã” để thử lại.';
-      } finally {
-        loading = false;
-        refreshButton.disabled = false;
-      }
-    }
-    refreshButton.addEventListener('click', refresh);
-    refresh();
-  }
   for (const form of document.querySelectorAll('[data-auth-form]')) {
     form.addEventListener('submit', event => {
       if (form.dataset.submitting) { event.preventDefault(); return; }

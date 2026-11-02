@@ -6,11 +6,12 @@ import {readFile} from 'node:fs/promises';
 import pg from 'pg';
 import request from 'supertest';
 import '../../api/src/config/env.js';
-import {createAuth} from '../src/auth/index.js';
+import {createAuth as createAuthImplementation} from '../src/auth/index.js';
 import {createApp} from '../src/app.js';
 import {createFixture} from '../../tests/fixtures.js';
 import {hashPassword,verify,mac,digest} from '../src/auth/crypto.js';
 process.env.SSR_SESSION_SECRET='test-only-secret-with-at-least-32-characters';
+const createAuth = options => createAuthImplementation({recaptchaVerifier: async response => response !== 'invalid-token', ...options});
 test('scrypt hashes are salted and passwords verify',async()=>{const a=await hashPassword('long-password-for-test');assert(await verify('long-password-for-test',a));assert(!await verify('wrong',a));assert.notEqual(a,await hashPassword('long-password-for-test'));});
 test('SSR auth PostgreSQL contracts', {skip:!process.env.DATABASE_URL&&!process.env.TEST_DATABASE_URL},async t=>{
  const schema=`block8_test_${Date.now()}`;const pool=new pg.Pool({connectionString:process.env.TEST_DATABASE_URL||process.env.DATABASE_URL,connectionTimeoutMillis:10000});
@@ -20,9 +21,8 @@ test('SSR auth PostgreSQL contracts', {skip:!process.env.DATABASE_URL&&!process.
  const agent=request.agent(app);const get=await agent.get('/login').expect(200);const csrf=get.text.match(/name="_csrf" value="([^"]+)"/)[1];
  const post=(path,data={})=>agent.post(path).type('form').send({_csrf:csrf,...data});
  await t.test('SSR forms and all CRUD routes reject anonymous requests',async()=>{assert(get.text.includes('Đăng nhập'));for(const route of ['/dishes','/dishes/1','/restaurants/1','/api/restaurants/suggestions','/admin',...['dishes','chefs','ingredients','restaurants'].flatMap(r=>[`/admin/${r}`,`/admin/${r}/new`,`/admin/${r}/1`,`/admin/${r}/1/edit`,`/admin/${r}/1/delete`])])await agent.get(route).expect(303).expect('Location','/login');for(const verb of ['post','patch','delete'])await agent[verb]('/admin/dishes/1').expect(303);await post('/login',{email:'x@example.com',password:'wrong',_csrf:'wrong'}).expect(403);});
- async function challenge(purpose,answer='ABC234'){const r=await agent.get(`/captcha?purpose=${purpose}`).expect(200);await q('UPDATE block8_auth.captcha SET hash=$1 WHERE id=$2',[mac(answer),r.body.id]);return {challengeId:r.body.id,captcha:answer};}
  const password='a-long-test-password-123';
- await t.test('register CAPTCHA, pending, OTP and single use',async()=>{await post('/register',{email:'test@example.com',password}).expect(400);await post('/register',{email:'test@example.com',password,role:'admin',...await challenge('register')}).expect(303);let u=(await q('SELECT * FROM block8_auth.users')).rows[0];assert.equal(u.role,'viewer');assert.equal(u.status,'pending');await post('/login',{email:u.email,password}).expect(400);assert.equal(messages.length,1);const otp=messages[0].text.match(/\d{6}/)[0];assert.notEqual((await q('SELECT hash FROM block8_auth.activation')).rows[0].hash,otp);const activation=await Promise.all([post('/activate',{email:u.email,otp}),post('/activate',{email:u.email,otp})]);assert.deepEqual(activation.map(r=>r.status).sort(),[303,400]);await post('/activate',{email:u.email,otp}).expect(400);await agent.get('/admin').expect(303);});
+ await t.test('register reCAPTCHA, pending, OTP and single use',async()=>{await post('/register',{email:'test@example.com',password}).expect(303);let u=(await q('SELECT * FROM block8_auth.users')).rows[0];assert.equal(u.role,'viewer');assert.equal(u.status,'pending');await post('/login',{email:u.email,password}).expect(400);assert.equal(messages.length,1);const otp=messages[0].text.match(/\d{6}/)[0];assert.notEqual((await q('SELECT hash FROM block8_auth.activation')).rows[0].hash,otp);const activation=await Promise.all([post('/activate',{email:u.email,otp}),post('/activate',{email:u.email,otp})]);assert.deepEqual(activation.map(r=>r.status).sort(),[303,400]);await post('/activate',{email:u.email,otp}).expect(400);await agent.get('/admin').expect(303);});
  let cookie;
  await t.test('login rotates sid, session persists across app instances and logout revokes',async()=>{const login=await post('/login',{email:'test@example.com',password}).expect(303);cookie=login.headers['set-cookie'][0].split(';')[0];assert(cookie.startsWith('sid='));assert(login.headers['set-cookie'][0].includes('HttpOnly'));const second=createApp({db:fixture.db||fixture,auth:createAuth({schema,pool,mailer:{sendMail:async()=>{}}})});await request(second).get('/admin').set('Cookie',cookie).expect(302);
 async function worker(){const child=fork(new URL('./server-fixture.js',import.meta.url),{env:{...process.env,AUTH_TEST_SCHEMA:schema},stdio:['ignore','ignore','inherit','ipc']});const [ready]=await once(child,'message');return {child,url:`http://127.0.0.1:${ready.port}`};}
@@ -46,17 +46,18 @@ const first=await worker();await request(first.url).get('/admin').set('Cookie',c
  await live.post('/admin/dishes').field('_csrf','wrong').attach('imageFile',Buffer.from('not-an-image'),'test.png').expect(403);
  await live.get('/admin/dishes/new').expect(200);
  });
- await t.test('CAPTCHA binds session and purpose, expires, and cannot replay',async()=>{
- const page=await agent.get('/register');const fresh=page.text.match(/name="_csrf" value="([^"]+)"/)[1];
- const data=await challenge('login');await agent.post('/register').type('form').send({_csrf:fresh,email:'other@example.com',password,...data}).expect(400);
- const valid=await challenge('register');const stranger=request.agent(app);const other=await stranger.get('/register');const otherCsrf=other.text.match(/name="_csrf" value="([^"]+)"/)[1];await stranger.post('/register').type('form').send({_csrf:otherCsrf,email:'another@example.com',password,...valid}).expect(400);
- await q("UPDATE block8_auth.captcha SET expires_at=now()-interval '1 second' WHERE id=$1",[valid.challengeId]);await agent.post('/register').type('form').send({_csrf:fresh,email:'other@example.com',password,...valid}).expect(400);
+ await t.test('reCAPTCHA is required before registration',async()=>{
+ const verifierAuth=createAuth({schema,pool,recaptchaVerifier:async response=>response==='valid-token',mailer:{sendMail:async()=>{}}});
+ const verifierApp=createApp({db:fixture.db||fixture,auth:verifierAuth});const verifierAgent=request.agent(verifierApp);
+ const page=await verifierAgent.get('/register');const fresh=page.text.match(/name="_csrf" value="([^"]+)"/)[1];
+ await verifierAgent.post('/register').type('form').send({_csrf:fresh,email:'captcha@example.com',password}).expect(400);
+ await verifierAgent.post('/register').type('form').send({_csrf:fresh,email:'captcha@example.com',password,'g-recaptcha-response':'valid-token'}).expect(303);
  });
  await t.test('brute-force state survives a new browser; correct password cannot bypass lock',async()=>{
  const page=await agent.get('/login');const fresh=page.text.match(/name="_csrf" value="([^"]+)"/)[1];
  for(let i=0;i<3;i++)await agent.post('/login').type('form').send({_csrf:fresh,email:'absent@example.com',password:'wrong'}).expect(400);
  const before=(await q('SELECT count FROM block8_auth.limits WHERE key=$1',['login:email:absent@example.com'])).rows[0].count;
- await agent.post('/login').type('form').send({_csrf:fresh,email:'absent@example.com',password:'wrong'}).expect(400);assert.equal((await q('SELECT count FROM block8_auth.limits WHERE key=$1',['login:email:absent@example.com'])).rows[0].count,before);
+ await agent.post('/login').type('form').send({_csrf:fresh,email:'absent@example.com',password:'wrong','g-recaptcha-response':'invalid-token'}).expect(400);assert.equal((await q('SELECT count FROM block8_auth.limits WHERE key=$1',['login:email:absent@example.com'])).rows[0].count,before);
  await q("UPDATE block8_auth.limits SET count=10,locked_until=now()+interval '15 minutes' WHERE key=$1",['login:email:absent@example.com']);
  const stranger=request.agent(app);const p=await stranger.get('/login');await stranger.post('/login').type('form').send({_csrf:p.text.match(/name="_csrf" value="([^"]+)"/)[1],email:'absent@example.com',password}).expect(429);
  });

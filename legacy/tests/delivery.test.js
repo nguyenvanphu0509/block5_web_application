@@ -6,11 +6,12 @@ import {newDb} from 'pg-mem';
 import session from 'express-session';
 import request from 'supertest';
 import {createMailSender,MailDeliveryError} from '../src/auth/mail.js';
-import {createAuth} from '../src/auth/index.js';
+import {createAuth as createAuthImplementation} from '../src/auth/index.js';
 import {createApp} from '../src/app.js';
 import {createFixture} from '../../tests/fixtures.js';
-import {mac,verify} from '../src/auth/crypto.js';
+import {verify} from '../src/auth/crypto.js';
 import {dishImage} from '../src/lib/presentation.js';
+const createAuth = options => createAuthImplementation({recaptchaVerifier: async () => true, ...options});
 
 const quiet={warn(){},error(){}};
 test('temporary SMTP failure retries same message; permanent failure is sanitized',async()=>{
@@ -31,7 +32,7 @@ test('failed first OTP can recover via registration/resend; failed resend preser
  const page=await agent.get('/register');const csrf=page.text.match(/name="_csrf" value="([^"]+)"/)[1];
  const post=(path,body)=>agent.post(path).type('form').send({_csrf:csrf,...body});
  const e='otp-delivery@example.com',password='original-registration-password';
- async function register(p=password){const captcha=await agent.get('/captcha?purpose=register');await pool.query('UPDATE block8_auth.captcha SET hash=$1 WHERE id=$2',[mac('ABC234'),captcha.body.id]);return post('/register',{email:e,password:p,challengeId:captcha.body.id,captcha:'ABC234'});}
+ async function register(p=password){return post('/register',{email:e,password:p});}
  try{
   const first=await register();assert.equal(first.status,303);assert.equal((await pool.query('SELECT * FROM block8_auth.activation')).rows.length,0);
   assert.equal((await pool.query('SELECT status FROM block8_auth.users')).rows[0].status,'pending');

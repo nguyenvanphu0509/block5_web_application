@@ -23,7 +23,7 @@ Production đặt SSR_ORIGIN đúng HTTPS và SSR_PORT theo hosting. Nếu có r
 
 - Email trim + lowercase; password 15–128 ký tự, không trim; scrypt N=131072/r=8/p=1, salt ngẫu nhiên. Role do server gán viewer; mọi active user dùng CRUD.
 - OTP: 6 chữ số, 10 phút, 5 lần sai khóa 15 phút, resend cách 60 giây, giữ số lần sai khi resend. HMAC trong DB, dùng một lần; kích hoạt không đăng nhập.
-- CAPTCHA ảnh: 6 ký tự, 2 phút, một lần thử, gắn sid/purpose; chỉ trả ảnh và ID. Thư viện ảnh có thể bị OCR, không thay thế rate limit.
+- reCAPTCHA v2 checkbox: site key chỉ ở frontend; secret chỉ ở backend. Server gọi Google `siteverify`, kiểm tra `success` và hostname, lỗi dịch vụ không cho qua. Đăng ký luôn yêu cầu reCAPTCHA; đăng nhập yêu cầu sau ngưỡng brute-force.
 - Login: cửa sổ 15 phút; CAPTCHA sau 3 sai/email hoặc 10 sai/IP, khóa sau 10/email hoặc 50/IP trong 15 phút. Bộ đếm PostgreSQL, không bị xóa bằng cookie/CAPTCHA. Giới hạn nguồn IP phụ thuộc cấu hình proxy.
 - Session PostgreSQL: sid thay khi login, HttpOnly/SameSite=Lax/Secure khi HTTPS, 8 giờ hoặc ghi nhớ 7 ngày, thời hạn tuyệt đối. Không share session với SPA.
 - POST logout hủy sid; reset 32 byte ngẫu nhiên, SHA-256 trong DB, hạn 15 phút, token mới hủy token cũ; reset không active pending, không tự login và thu hồi phiên qua xóa session + version user.
@@ -98,7 +98,7 @@ Giao diện: `node legacy/scripts/visual-qa.js` từ gốc chạy Chrome headles
 **Thư viện và cấu hình**
 
 - Session: `express-session` với PostgreSQL store `connect-pg-simple`.
-- CAPTCHA ảnh: `svg-captcha`; sinh chuỗi bằng bộ sinh ngẫu nhiên an toàn của Node, dùng thư viện để dựng ảnh.
+- reCAPTCHA: Google reCAPTCHA v2 checkbox; `RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` và `RECAPTCHA_ALLOWED_HOSTNAMES` nằm trong `.env`.
 - Password: `crypto.scrypt` bất đồng bộ với salt ngẫu nhiên; cấu hình N=2^17, r=8, p=1 và bộ nhớ phù hợp.
 - Email: Nodemailer qua SMTP, cấu hình trong `.env` riêng của SSR. OTP/reset dùng URL origin cấu hình sẵn.
 - Migration và seed chỉ chạy bằng lệnh rõ ràng; startup không tự thay đổi database.
@@ -110,7 +110,7 @@ Giao diện: `node legacy/scripts/visual-qa.js` từ gốc chạy Chrome headles
 - `GET/POST /register`, có `/signup` chuyển hướng tới `/register`.
 - Chuẩn hóa email bằng trim và chuyển chữ thường, áp dụng đồng nhất ở mọi luồng; mật khẩu 15–128 ký tự, không tự trim.
 - Đăng ký luôn cần CAPTCHA hợp lệ tại server trước khi băm password, tạo tài khoản hoặc gửi OTP.
-- CAPTCHA gồm 6 ký tự dễ phân biệt, hạn 2 phút, gắn phiên ẩn danh và mục đích register/login. Endpoint ảnh chỉ trả SVG, không trả đáp án; dùng một lần kể cả khi nhập sai.
+- reCAPTCHA token chỉ được xác minh server-to-server với Google; không tin giá trị `success` do trình duyệt tự gửi. Hostname phải thuộc allowlist cấu hình.
 - Tạo user pending, phản hồi chung cho email mới/đã có; không ghi đè password tài khoản cũ.
 - `GET/POST /activate` và `POST /activate/resend`: OTP 6 chữ số, hạn 10 phút, tối đa 5 lần sai, khóa 15 phút, gửi lại cách nhau ít nhất 60 giây.
 - OTP lưu HMAC với secret server, không lưu plaintext. Gửi lại thay mã cũ nhưng không đặt lại bộ đếm sai; sau thời gian khóa mới mở cửa sổ thử mới.
@@ -148,7 +148,7 @@ Giao diện: `node legacy/scripts/visual-qa.js` từ gốc chạy Chrome headles
 
 - Kiểm tra HTML trả về đã có nội dung trang và form; không phụ thuộc React để tạo nội dung chính.
 - So sánh ảnh SPA/SSR cùng dữ liệu ở desktop 1440px và mobile 390px: trang chủ, danh sách, chi tiết, quản lý, form và auth. Giữ bố cục, ảnh, typography và không tràn ngang.
-- Kiểm thử toàn bộ ma trận slide 58–61: pending bị chặn, role giả bị bỏ qua, OTP hết hạn/dùng lại/gửi lại/đồng thời, CAPTCHA sai phiên/sai mục đích/dùng lại, bộ đếm không bị xóa bằng cookie hoặc CAPTCHA.
+- Kiểm thử toàn bộ ma trận slide 58–61: pending bị chặn, role giả bị bỏ qua, OTP hết hạn/dùng lại/gửi lại/đồng thời, reCAPTCHA token sai/hostname sai/dịch vụ lỗi, bộ đếm không bị xóa bằng cookie hoặc reCAPTCHA.
 - HTTP test liệt kê từng route CRUD, kiểm tra 303 khi thiếu session và dữ liệu không đổi; kiểm tra CSRF với form thường và multipart.
 - Kiểm tra restart tiến trình thật vẫn giữ session; logout/reset khiến sid cũ bị từ chối.
 - Email tự động dùng transport giả lập để kiểm thử; nghiệm thu riêng bằng SMTP thật, nhận OTP và link reset trong hộp thư.
@@ -158,17 +158,17 @@ Giao diện: `node legacy/scripts/visual-qa.js` từ gốc chạy Chrome headles
 
 ## 5. Mặc định đã chốt
 
-- Express + EJS; CAPTCHA ảnh bằng thư viện; email thật qua SMTP cấu hình độc lập nhà cung cấp.
+- Express + EJS; Google reCAPTCHA v2 checkbox; email thật qua SMTP cấu hình độc lập nhà cung cấp.
 - Dùng chung database danh mục, auth nằm trong schema riêng. Thao tác CRUD thực tế ở SSR sẽ xuất hiện trên SPA.
 - SPA không nhận hoặc dùng phiên đăng nhập SSR; REST API hiện tại không được bổ sung auth trong phạm vi này.
 - SMTP credential và quyền tạo schema cần được cấu hình trước nghiệm thu thật; không đưa bí mật vào source hay tài liệu.
-- Không triển khai Next.js, reCAPTCHA, MFA hoặc phân quyền role ở Block 8.
+- Không triển khai Next.js, MFA hoặc phân quyền role ở Block 8.
 
 ## Luồng đăng ký và OTP
 
 Đăng ký hợp lệ trả 303 tới `/activate`; tải lại trang này không gửi lại POST đăng ký/CAPTCHA đã dùng. Màn hình OTP giữ email đăng ký trong phiên, có mã 6 số, thông tin hạn 10 phút và nút gửi lại đếm ngược 60 giây. Kích hoạt đúng trả 303 tới `/login`, hiển thị thông báo xác minh thành công; không tự đăng nhập theo yêu cầu Block 8. Nếu email đã đăng ký trước đó, dùng nút gửi lại OTP; đăng ký lại không ghi đè mật khẩu.
 
-CAPTCHA bỏ khoảng trắng đầu/cuối và không phân biệt hoa/thường. Form chờ ảnh tải hoàn tất, khóa nút gửi trong lúc xử lý và không đổi challenge ID trước khi ảnh mới sẵn sàng. CAPTCHA vẫn chỉ dùng một lần, gắn phiên và mục đích.
+Form đăng ký hiển thị Google reCAPTCHA v2 checkbox. Token chỉ được gửi tới Google từ backend để xác minh, hostname phải nằm trong `RECAPTCHA_ALLOWED_HOSTNAMES`, và lỗi dịch vụ sẽ bị từ chối thay vì cho qua. Login chỉ yêu cầu reCAPTCHA sau ngưỡng brute-force đã công bố.
 
 Kiểm thử không đọc `.env`, không gửi email thật và không truy cập database thật:
 
@@ -188,6 +188,9 @@ SMTP_PASSWORD	App Password do Google cung cấp
 SMTP_FROM	Tên và địa chỉ email người gửi, thường dùng cùng Gmail với SMTP_USER
 SSR_SEED_EMAIL	Email tài khoản mẫu để đăng nhập ứng dụng SSR
 SSR_SEED_PASSWORD	Mật khẩu tài khoản mẫu SSR do bạn tự đặt
+RECAPTCHA_SITE_KEY	Site key công khai của Google reCAPTCHA v2, dùng trong HTML
+RECAPTCHA_SECRET_KEY	Secret key chỉ dùng ở backend để gọi Google siteverify
+RECAPTCHA_ALLOWED_HOSTNAMES	Danh sách hostname được Google trả về và server chấp nhận, phân tách bằng dấu phẩy
 
 ## 
 tuan sau mfa chuan bi gg authenticator 

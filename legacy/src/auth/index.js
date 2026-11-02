@@ -5,14 +5,13 @@ import session from 'express-session';
 import connectPg from 'connect-pg-simple';
 import pg from 'pg';
 import {Router} from 'express';
-import svgCaptcha from 'svg-captcha';
 import nodemailer from 'nodemailer';
-import {randomInt} from 'node:crypto';
-import {secret,origin} from './config.js';
+import {secret,origin,recaptchaSiteKey} from './config.js';
+import {createRecaptchaVerifier,RecaptchaUnavailableError} from './recaptcha.js';
 import {email,token,digest,mac,validPassword,hashPassword,verify} from './crypto.js';
 const Store=connectPg(session);
 const dummyHash=hashPassword('dummy-password-for-timing');
-export function createAuth({schema='block8_auth',siteOrigin=origin,sessionStore,mailLogger=console,pool=new pg.Pool({connectionString:process.env.SSR_DATABASE_URL||process.env.DATABASE_URL}),mailer=nodemailer.createTransport({host:process.env.SMTP_HOST,port:Number(process.env.SMTP_PORT||587),secure:process.env.SMTP_PORT==='465',requireTLS:true,connectionTimeout:10000,greetingTimeout:10000,socketTimeout:15000,auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASSWORD}})}={}){
+export function createAuth({schema='block8_auth',siteOrigin=origin,sessionStore,mailLogger=console,recaptchaVerifier=createRecaptchaVerifier(),pool=new pg.Pool({connectionString:process.env.SSR_DATABASE_URL||process.env.DATABASE_URL}),mailer=nodemailer.createTransport({host:process.env.SMTP_HOST,port:Number(process.env.SMTP_PORT||587),secure:process.env.SMTP_PORT==='465',requireTLS:true,connectionTimeout:10000,greetingTimeout:10000,socketTimeout:15000,auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASSWORD}})}={}){
  siteOrigin = new URL(siteOrigin).origin;
  if(!/^[a-z][a-z0-9_]*$/.test(schema))throw new Error('Invalid auth schema');
  const sql=s=>s.replaceAll('block8_auth.',schema+'.');
@@ -35,9 +34,9 @@ export function createAuth({schema='block8_auth',siteOrigin=origin,sessionStore,
      return true;
    });
  }
- function form(req,res,mode,message='',status=200,extra={}){res.status(status).render('auth/index',{title:'Tài khoản',mode,message,email:email(req.body?.email||req.query.email||req.session.activationEmail),resendUntil:req.session.activationResendUntil||0,redirect:typeof req.query.redirect==='string'?req.query.redirect:'',resetAvailable:true,...extra});}
+ function form(req,res,mode,message='',status=200,extra={}){res.status(status).render('auth/index',{title:'Tài khoản',mode,message,email:email(req.body?.email||req.query.email||req.session.activationEmail),resendUntil:req.session.activationResendUntil||0,redirect:typeof req.query.redirect==='string'?req.query.redirect:'',resetAvailable:true,recaptchaSiteKey,...extra});}
  const limited=(req,res,mode)=>form(req,res,mode,'Quá nhiều yêu cầu. Vui lòng thử lại sau.',429);
- async function captcha(req,purpose){const r=await q('UPDATE block8_auth.captcha SET used_at=now() WHERE id=$1 AND sid=$2 AND purpose=$3 AND used_at IS NULL AND expires_at>now() RETURNING hash',[String(req.body.challengeId||''),req.sessionID,purpose]);return r.rows[0]?.hash===mac(String(req.body.captcha||'').trim().toUpperCase());}
+ async function captcha(req){try{return await recaptchaVerifier(String(req.body['g-recaptcha-response']||''),req.ip);}catch(error){if(error instanceof RecaptchaUnavailableError)return 'unavailable';throw error;}}
  router.use(async(req,res,next)=>{if(req.session.absoluteExpiry && Date.now()>=req.session.absoluteExpiry){delete req.session.userId;} if(req.path==='/reset')res.set('Referrer-Policy','no-referrer');res.set('Cache-Control','no-store');req.session.csrf ||=token();res.locals.csrf=req.session.csrf;res.locals.user=null;if(req.session.userId){const u=(await q('SELECT id,email,name,status,version FROM block8_auth.users WHERE id=$1',[req.session.userId])).rows[0];if(u?.status==='active'&&u.version===req.session.version)res.locals.user=u;else delete req.session.userId;}next();});
  function csrf(req,res,next){if(['GET','HEAD','OPTIONS'].includes(req.method))return next();if(req.body?._csrf!==req.session.csrf)return res.status(403).render('errors/index',{title:'Lỗi 403',status:403,message:'Biểu mẫu không hợp lệ. Vui lòng tải lại trang.'});next();}
  const requireAuth=(req,res,next)=>res.locals.user?next():res.redirect(303,'/login');
@@ -55,12 +54,6 @@ export function createAuth({schema='block8_auth',siteOrigin=origin,sessionStore,
  });
  function activationRedirect(req,res){return new Promise((resolve,reject)=>req.session.save(err=>{if(err)return reject(err);res.redirect(303,'/activate');resolve();}));}
 
- router.get('/captcha',async(req,res)=>{
- const purpose=req.query.purpose==='register'?'register':'login';if(await count(`captcha:${req.ip}`,true)>100)return res.sendStatus(429);
- const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';const answer=Array.from({length:6},()=>alphabet[randomInt(alphabet.length)]).join('');const id=token(),image=svgCaptcha(answer,{noise:3,color:true,width:220,height:70});
- await q('INSERT INTO block8_auth.captcha(id,sid,purpose,hash,image,expires_at) VALUES($1,$2,$3,$4,$5,now()+interval \'2 minutes\')',[id,req.sessionID,purpose,mac(answer),image]);
- res.json({id,imageUrl:`/captcha/${id}`});});
- router.get('/captcha/:id',async(req,res)=>{const r=await q('SELECT image FROM block8_auth.captcha WHERE id=$1 AND sid=$2 AND expires_at>now() AND used_at IS NULL',[req.params.id,req.sessionID]);if(!r.rows[0])return res.sendStatus(404);res.type('svg').send(r.rows[0].image);});
  router.use((req,res,next)=>{
    if (['GET','HEAD','OPTIONS'].includes(req.method)) return next();
    const source = req.headers.origin;
@@ -75,7 +68,7 @@ export function createAuth({schema='block8_auth',siteOrigin=origin,sessionStore,
      title:'Lỗi 403',status:403,message:'Nguồn gửi biểu mẫu không hợp lệ. Vui lòng mở lại trang từ website.'
    });
  });
- router.post('/register',csrf,async(req,res)=>{const e=email(req.body.email);if(await quota(req,'register',e,3,10))return limited(req,res,'register');if(!await captcha(req,'register'))return form(req,res,'register','CAPTCHA không hợp lệ.',400);if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)||!validPassword(req.body.password))return form(req,res,'register','Email hợp lệ; mật khẩu cần 15–128 ký tự.',400);
+ router.post('/register',csrf,async(req,res)=>{const e=email(req.body.email);if(await quota(req,'register',e,3,10))return limited(req,res,'register');const captchaResult=await captcha(req);if(captchaResult==='unavailable')return form(req,res,'register','Dịch vụ CAPTCHA tạm thời không khả dụng. Vui lòng thử lại sau.',503);if(!captchaResult)return form(req,res,'register','Vui lòng xác nhận reCAPTCHA.',400);if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)||!validPassword(req.body.password))return form(req,res,'register','Email hợp lệ; mật khẩu cần 15–128 ký tự.',400);
  const existing=(await q('SELECT status FROM block8_auth.users WHERE email=$1',[e])).rows[0];if(existing?.status==='active')return form(req,res,'register','Email này đã được đăng ký. Vui lòng đăng nhập để tiếp tục.',400);
  const inserted=await q('INSERT INTO block8_auth.users(email,name,password_hash) VALUES($1,$2,$3) ON CONFLICT(email) DO NOTHING RETURNING id',[e,String(req.body.name||'').slice(0,100),await hashPassword(req.body.password)]);if(!inserted.rows.length){const current=(await q('SELECT status FROM block8_auth.users WHERE email=$1',[e])).rows[0];if(current?.status==='active')return form(req,res,'register','Email này đã được đăng ký. Vui lòng đăng nhập để tiếp tục.',400);}await deliverActivation(e);req.session.activationEmail=e;req.session.activationResendUntil=Date.now()+60000;await activationRedirect(req,res);});
  router.post('/activate/resend',csrf,async(req,res)=>{
@@ -92,8 +85,7 @@ export function createAuth({schema='block8_auth',siteOrigin=origin,sessionStore,
  req.session.activationComplete=true;delete req.session.activationEmail;delete req.session.activationResendUntil;
  await new Promise((resolve,reject)=>req.session.save(err=>err?reject(err):resolve()));return res.redirect(303,'/login');
  }form(req,res,'activate','Mã không hợp lệ, đã hết hạn hoặc đã được sử dụng.',400);});
- router.post('/login',csrf,async(req,res)=>{const e=email(req.body.email),ek=`login:email:${e}`,ik=`login:ip:${req.ip}`;const a=await count(ek),b=await count(ik);if(a>=10||b>=50)return limited(req,res,'login');if((a>=3||b>=10)&&!await captcha(req,'login'))return form(req,res,'login','Vui lòng giải CAPTCHA.',400);
- const u=(await q('SELECT * FROM block8_auth.users WHERE email=$1',[e])).rows[0];const stored=u?.password_hash||await dummyHash;const correct=await verify(req.body.password,stored);
+ router.post('/login',csrf,async(req,res)=>{const e=email(req.body.email),ek=`login:email:${e}`,ik=`login:ip:${req.ip}`;const a=await count(ek),b=await count(ik);if(a>=10||b>=50)return limited(req,res,'login');const needsCaptcha=a>=3||b>=10;const captchaResult=needsCaptcha?await captcha(req):true;if(captchaResult==='unavailable')return form(req,res,'login','Dịch vụ CAPTCHA tạm thời không khả dụng. Vui lòng thử lại sau.',503);if(needsCaptcha&&!captchaResult)return form(req,res,'login','Vui lòng xác nhận reCAPTCHA.',400);const u=(await q('SELECT * FROM block8_auth.users WHERE email=$1',[e])).rows[0];const stored=u?.password_hash||await dummyHash;const correct=await verify(req.body.password,stored);
  if(!correct||u?.status!=='active'){const x=await count(ek,true),y=await count(ik,true);if(x>=10||y>=50)await q("UPDATE block8_auth.limits SET locked_until=now()+interval '15 minutes' WHERE key=ANY($1)",[[...(x>=10?[ek]:[]),...(y>=50?[ik]:[])]]);if(x>=10||y>=50)return limited(req,res,'login');return form(req,res,'login','Thông tin đăng nhập không hợp lệ.',400);}
  await new Promise((resolve,reject)=>req.session.regenerate(e=>e?reject(e):resolve()));req.session.userId=u.id;req.session.version=u.version;req.session.csrf=token();req.session.cookie.maxAge=req.body.remember?7*86400000:8*3600000;req.session.absoluteExpiry=Date.now()+req.session.cookie.maxAge;await new Promise((resolve,reject)=>req.session.save(e=>e?reject(e):resolve()));const target=String(req.body.redirect||'');res.redirect(303,/^\/(dishes|restaurants|admin)(\/|\?|$)/.test(target)&&!target.includes('\\')?target:'/dishes');});
  router.post('/logout',csrf,(req,res,next)=>req.session.destroy(e=>{if(e)return next(e);res.clearCookie('sid',{path:'/'});res.redirect(303,'/login');}));
