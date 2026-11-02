@@ -8,6 +8,7 @@ import {createAuth} from '../src/auth/index.js';
 import {createApp} from '../src/app.js';
 import {createFixture} from '../../tests/fixtures.js';
 import {mac} from '../src/auth/crypto.js';
+import {browserLaunchOptions} from '../scripts/browser-launch.js';
 
 test('registration → dedicated OTP URL → login; no environment files or real email', async () => {
  const memory = newDb();
@@ -46,6 +47,13 @@ test('registration → dedicated OTP URL → login; no environment files or real
  await browser.post('/activate').type('form').send({_csrf:csrf,email:'new@example.com',otp}).expect(400);
  await browser.post('/login').type('form').send({_csrf:csrfFrom(login),email:'new@example.com',password:payload.password}).expect(303).expect('Location','/dishes');
  await browser.get('/admin').expect(302).expect('Location','/admin/dishes');
+ const duplicateRegister=await browser.get('/register').expect(200);
+ const duplicateCsrf=csrfFrom(duplicateRegister);
+ const duplicateChallenge=await browser.get('/captcha?purpose=register').expect(200);
+ await pool.query('UPDATE block8_auth.captcha SET hash=$1 WHERE id=$2',[mac('ABC234'),duplicateChallenge.body.id]);
+ const duplicate=await browser.post('/register').type('form').send({_csrf:duplicateCsrf,email:'NEW@example.com',password:payload.password,captcha:'ABC234',challengeId:duplicateChallenge.body.id}).expect(400);
+ assert.match(duplicate.text,/Email này đã được đăng ký/);
+ assert.equal(messages.length,1,'active accounts must not receive another activation email');
  await pool.end();
 });
 
@@ -63,7 +71,7 @@ test('browser: displayed CAPTCHA, double-click protection, OTP page and login re
  let registrations=0;server.on('request',req=>{if(req.method==='POST'&&req.url==='/register')registrations++;});
  let browser;
  try {
-   browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+   browser=await chromium.launch(browserLaunchOptions());
    const page=await browser.newPage({viewport:{width:390,height:1000}});
    const base=`http://127.0.0.1:${server.address().port}`;
    await page.route(/^https:\/\//,route=>route.abort());

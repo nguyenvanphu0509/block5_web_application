@@ -63,7 +63,7 @@ Nghiệm thu theo slide 58–63: chụp Network, Application/Cookies, email và 
 
 Một lỗi phát hiện lúc triển khai: chèn CSRF bằng regex đơn giản làm hỏng thẻ form chứa biểu thức EJS trong enctype. Phát hiện bằng đọc markup và compile toàn bộ template; sửa bằng nhận diện khối EJS trước khi tìm dấu đóng thẻ. Không đưa bí mật vào bằng chứng.
 
-Giao diện: `node legacy/scripts/visual-qa.js` từ gốc chạy Chrome headless, dùng danh mục thật ở chế độ chỉ đọc và schema auth tạm; cổng 3000/3001/5173 phải trống. Chụp SPA/SSR desktop 1440px và mobile 390px vào legacy/artifacts (không commit). `QA_QUICK=1` chỉ kiểm tra lại danh sách/auth SSR. Script hiện dùng Chrome macOS tại /Applications/Google Chrome.app; đổi executablePath nếu dùng môi trường khác.
+Giao diện: `node legacy/scripts/visual-qa.js` từ gốc chạy Chrome headless, dùng danh mục thật ở chế độ chỉ đọc và schema auth tạm; cổng 3000/3001/5173 phải trống. Chụp SPA/SSR desktop 1440px và mobile 390px vào legacy/artifacts (không commit). `QA_QUICK=1` chỉ kiểm tra lại danh sách/auth SSR. Script tự tìm Chrome theo hệ điều hành; có thể chỉ định `CHROME_EXECUTABLE_PATH` khi cần.
 
 `## 
 # Block 8: SSR Express + EJS giữ giao diện hiện tại

@@ -4,10 +4,11 @@ import {chromium} from 'playwright';
 import {randomBytes} from 'node:crypto';
 import {createInterface} from 'node:readline';
 import {mkdir} from 'node:fs/promises';
+import {browserLaunchOptions} from './browser-launch.js';
 const address=process.argv[2];
 if(!address?.includes('@'))throw new Error('Provide the authorized recipient alias');
 const password=randomBytes(24).toString('base64url');
-const browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const browser=await chromium.launch(browserLaunchOptions());
 const page=await browser.newPage({viewport:{width:1440,height:1000}});
 const lines=createInterface({input:process.stdin,crlfDelay:Infinity});
 try{

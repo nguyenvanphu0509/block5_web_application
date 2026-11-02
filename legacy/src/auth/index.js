@@ -76,7 +76,8 @@ export function createAuth({schema='block8_auth',siteOrigin=origin,sessionStore,
    });
  });
  router.post('/register',csrf,async(req,res)=>{const e=email(req.body.email);if(await quota(req,'register',e,3,10))return limited(req,res,'register');if(!await captcha(req,'register'))return form(req,res,'register','CAPTCHA không hợp lệ.',400);if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)||!validPassword(req.body.password))return form(req,res,'register','Email hợp lệ; mật khẩu cần 15–128 ký tự.',400);
- await q('INSERT INTO block8_auth.users(email,name,password_hash) VALUES($1,$2,$3) ON CONFLICT(email) DO NOTHING RETURNING *',[e,String(req.body.name||'').slice(0,100),await hashPassword(req.body.password)]);await deliverActivation(e);req.session.activationEmail=e;req.session.activationResendUntil=Date.now()+60000;await activationRedirect(req,res);});
+ const existing=(await q('SELECT status FROM block8_auth.users WHERE email=$1',[e])).rows[0];if(existing?.status==='active')return form(req,res,'register','Email này đã được đăng ký. Vui lòng đăng nhập để tiếp tục.',400);
+ const inserted=await q('INSERT INTO block8_auth.users(email,name,password_hash) VALUES($1,$2,$3) ON CONFLICT(email) DO NOTHING RETURNING id',[e,String(req.body.name||'').slice(0,100),await hashPassword(req.body.password)]);if(!inserted.rows.length){const current=(await q('SELECT status FROM block8_auth.users WHERE email=$1',[e])).rows[0];if(current?.status==='active')return form(req,res,'register','Email này đã được đăng ký. Vui lòng đăng nhập để tiếp tục.',400);}await deliverActivation(e);req.session.activationEmail=e;req.session.activationResendUntil=Date.now()+60000;await activationRedirect(req,res);});
  router.post('/activate/resend',csrf,async(req,res)=>{
  const e=email(req.body.email);
  if(await quota(req,'resend',e,5,20))return limited(req,res,'activate');

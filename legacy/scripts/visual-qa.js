@@ -11,13 +11,14 @@ import {createAuth} from '../src/auth/index.js';
 import {hashPassword} from '../src/auth/crypto.js';
 import {createApi} from '../../api/src/app.js';
 import {createWebServer} from '../../web/server.js';
+import {browserLaunchOptions} from './browser-launch.js';
 const pool=new pg.Pool({connectionString:process.env.DATABASE_URL});const db=createDatabaseClient();const schema=`block8_visual_${Date.now()}`;const servers=[];let browser;
 async function listen(app,port){const server=await new Promise((resolve,reject)=>{const s=app.listen(port,'127.0.0.1',()=>resolve(s));s.on('error',reject);});servers.push(server);}
 try{
  await pool.query((await readFile(new URL('../migrations/001-auth.sql',import.meta.url),'utf8')).replaceAll('block8_auth',schema));
  await pool.query(`INSERT INTO ${schema}.users(email,name,password_hash,status,email_verified_at) VALUES($1,'QA',$2,'active',now())`,['qa@example.invalid',await hashPassword('visual-qa-password-only')]);
  await listen(createApp({db,auth:createAuth({pool,schema,mailer:{sendMail:async()=>{}}})}),3001);await listen(createApi({db,origin:'http://localhost:5173'}),3000);await listen(createWebServer(),5173);
- browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+ browser=await chromium.launch(browserLaunchOptions());
  const ssr=await browser.newContext(),spa=await browser.newContext();await spa.addInitScript(()=>localStorage.setItem('viet_cuisine_user',JSON.stringify({id:'qa',username:'QA',email:'qa@example.invalid'})));
  const page=await ssr.newPage();await page.goto('http://localhost:3001/login');await page.locator('[name=email]').fill('qa@example.invalid');await page.locator('[name=password]').fill('visual-qa-password-only');await Promise.all([page.waitForURL('**/dishes'),page.locator('button[type=submit]').first().click()]);
  const first=await db.dish.findFirst({orderBy:{id:'asc'}});const targets=process.env.QA_QUICK?['/dishes','/login']:['/','/dishes',`/dishes/${first.id}`,'/admin/dishes','/admin/dishes/new','/login','/register'];await mkdir('legacy/artifacts',{recursive:true});
