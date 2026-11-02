@@ -12,21 +12,21 @@ const SLIDES = [
     pill: 'Bắt đầu hành trình hôm nay!',
   },
   {
-    image: 'https://images.unsplash.com/photo-1622549071350-226435092804?q=80&w=1332&auto=format&fit=crop',
+    image: '/images/auth-seafood.jpg',
     title: 'Hải Sản Nướng Tổng Hợp Miền Biển',
     desc: 'Thưởng thức đĩa hải sản nướng thơm lừng đậm đà hương vị biển cả cùng nước chấm thảo mộc đặc sắc.',
     tagline: 'Tinh Hoa Hải Vị Biển Xanh,<br />Đậm Đà Khó Quên!',
     pill: 'Khám phá món hải sản!',
   },
   {
-    image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?q=80&w=1287&auto=format&fit=crop',
+    image: '/images/auth-salmon.jpg',
     title: 'Cá Hồi Áp Chảo Thượng Hạng',
     desc: 'Cá hồi áp chảo mềm ngọt hòa quyện sốt bơ chanh béo ngậy, dùng kèm măng tây tươi giòn thanh mát.',
     tagline: 'Mỗi Bữa Ăn Là Một<br />Khoảnh Khắc Đáng Nhớ!',
     pill: 'Xem món cá hồi đặc biệt!',
   },
   {
-    image: 'https://images.unsplash.com/photo-1448043552756-e747b7a2b2b8?q=80&w=2104&auto=format&fit=crop',
+    image: '/images/auth-clams.jpg',
     title: 'Nghêu Hấp Chanh Sả Thanh Mát',
     desc: 'Nghêu biển tươi roi rói hòa trong nước dùng thơm lừng vị sả, ớt tươi và lá chanh ấm nồng.',
     tagline: 'Hương Vị Thiên Nhiên,<br />Khơi Nguồn Cảm Hứng!',
@@ -406,7 +406,12 @@ export function AuthPage({ initialMode = 'login' }) {
                 src={slide.image}
                 alt={slide.title}
                 className={`auth-banner-image ${i === slideIndex ? 'active' : ''}`}
-                loading={i === 0 ? 'eager' : 'lazy'}
+                loading="eager"
+                onError={(event) => {
+                  if (event.currentTarget.getAttribute('src') !== '/images/login.jpg') {
+                    event.currentTarget.src = '/images/login.jpg';
+                  }
+                }}
               />
             ))}
 

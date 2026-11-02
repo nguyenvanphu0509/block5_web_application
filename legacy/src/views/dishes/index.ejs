@@ -1,25 +1,49 @@
 <%- include('../partials/head') %>
-<main id="main" class="shell page-main"><div class="page-heading"><span class="section-badge">THE SAIGON TABLE</span><h1>Một thực đơn.<br><em>Muôn vàn cảm hứng.</em></h1><p>Tìm món yêu thích hoặc sắp xếp theo quán, khu vực, giá, loại món, đầu bếp và tên món.</p></div>
+<main id="main" class="shell page-main dish-catalog-page"><div class="page-heading"><span class="section-badge">THE SAIGON TABLE</span><h1>Một thực đơn.<br><em>Muôn vàn cảm hứng.</em></h1><p>Khám phá món ăn bằng tên, mô tả hoặc tên gần đúng.</p></div>
 <div class="dish-search" id="search">
-<form class="search-form" action="/dishes#menu-results" method="GET">
-<input id="dish-search" type="search" name="q" value="<%= q %>" maxlength="120" placeholder="Tên món hoặc hương vị…" aria-label="Tìm món ăn">
-<% ['sort','restaurantId','district','category','chefId','ingredientId','available'].forEach(key => { if (state[key] !== null && state[key] !== undefined && state[key] !== '') { %><input type="hidden" name="<%= key %>" value="<%= state[key] %>"><% } }); %>
-<button class="button small" type="submit">Tìm món ↗</button>
-</form></div>
-<section id="menu-results" aria-label="Kết quả món ăn">
-<div class="catalog-toolbar"><span><strong><%= total %> món</strong></span><button class="menu-options-trigger" type="button" data-open-dish-options aria-haspopup="dialog" aria-controls="dish-options">Tất cả món ăn ↗</button></div>
-<dialog id="dish-options" class="dish-options-dialog" aria-labelledby="dish-options-title">
-<div class="dish-options-header"><div><span class="section-badge">THỰC ĐƠN CỦA BẠN</span><h2 id="dish-options-title">Khám phá theo cách bạn muốn</h2></div><button class="circle-button" type="button" data-close-dish-options aria-label="Đóng tùy chọn món ăn" autofocus>×</button></div>
-<p class="source-note">Chọn một cách sắp xếp để xem ngay.</p>
-<nav class="dish-sort-options" aria-label="Cách sắp xếp món ăn"><% Object.entries(sortOptions).forEach(([value,option]) => { %><a class="dish-sort-option <%= state.sort === value ? 'active' : '' %>" href="<%= href({sort:value,page:1}) %>" <%= state.sort === value ? 'aria-current=true' : '' %>><%= option.label %> <span aria-hidden="true">↗</span></a><% }) %></nav>
-<a class="back-link" href="/dishes#menu-results">Bỏ bộ lọc · Xem tất cả món ăn ↗</a>
-</dialog>
-<noscript><p><a href="/dishes?sort=name#menu-results">Tên món A–Z</a> · <a href="/dishes?sort=restaurant#menu-results">Theo nhà hàng</a> · <a href="/dishes?sort=district#menu-results">Theo khu vực</a> · <a href="/dishes?sort=price-asc#menu-results">Giá tăng dần</a></p></noscript>
+<form id="dish-search-form" class="catalog-search-form dish-search-form" action="/dishes#menu-results" method="GET" role="search" aria-label="Tìm kiếm món ăn">
+<% const activeFilters = [state.category, state.minPrice, state.maxPrice].filter(v => v !== null && v !== '').length; %>
+<div class="dish-search-heading"><div><span class="dish-search-eyebrow">MỘT CHÚT CẢM HỨNG CHO BỮA ĂN</span><h2>Hôm nay, bạn muốn ăn gì?</h2></div><span class="dish-search-decoration" aria-hidden="true">✳</span></div>
+<% ['restaurantId','district','chefId','ingredientId','available'].forEach(key => { if (state[key] !== null && state[key] !== undefined && state[key] !== '') { %><input type="hidden" name="<%= key %>" value="<%= state[key] %>"><% } }); %>
+<div class="dish-search-row">
+<label class="dish-keyword"><span class="sr-only">Từ khóa</span><span class="dish-query-input"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg><input id="dish-search" type="search" name="q" value="<%= q %>" maxlength="120" placeholder="Phở bò, bún chả, bánh mì…" aria-label="Tìm món ăn" aria-describedby="dish-search-help"></span></label>
+<label class="dish-mode-field"><span>Cách tìm</span><select name="mode" aria-describedby="dish-search-help"><% for(const [v,n] of Object.entries({basic:'Thông thường',advanced:'Nâng cao',fulltext:'Toàn văn',fuzzy:'Gần đúng'})){ %><option value="<%= v %>" <%= state.mode===v?'selected':'' %>><%= n %></option><% } %></select></label>
+<button class="button dish-search-submit" type="submit">Tìm món ngon <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+</div>
+<p id="dish-search-help" class="dish-search-help" data-search-help><%= ({basic:'Tìm theo tên món. Thử “phở” để khám phá Phở bò, Phở gà.',advanced:'Kết hợp tên món, loại món và khoảng giá bạn muốn.',fulltext:'Tìm từ khóa trong cả tên và mô tả món ăn.',fuzzy:'Gợi ý tên món gần đúng khi bạn gõ sai một vài ký tự.'})[state.mode] %></p>
+<nav class="dish-category-chips" aria-label="Chọn nhanh loại món">
+<a class="dish-category-chip <%= !state.category ? 'active' : '' %>" href="<%= href({category:'',page:1}) %>" <%= !state.category ? 'aria-current=true' : '' %>>Tất cả món</a>
+<% categories.slice(0,6).forEach(category => { %><a class="dish-category-chip <%= state.category === category ? 'active' : '' %>" href="<%= href({category,page:1}) %>" <%= state.category === category ? 'aria-current=true' : '' %>><%= category %></a><% }) %>
+</nav>
+<div class="dish-filter-footer">
+<details class="dish-advanced-filters" <%= activeFilters ? 'open' : '' %>>
+<summary><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h7m4 0h5M4 17h3m4 0h9"/><circle cx="13" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>Bộ lọc nâng cao<% if(activeFilters) { %><span class="dish-filter-count"><%= activeFilters %></span><% } %><svg class="dish-filter-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+<div class="dish-filter-grid">
+<label>Loại món<select name="category"><option value="">Tất cả loại món</option><% categories.forEach(c=>{ %><option <%= state.category===c?'selected':'' %>><%= c %></option><% }) %></select></label>
+<label>Giá từ <span class="dish-price-input"><input type="number" min="0" step="1" name="minPrice" value="<%= state.minPrice %>" placeholder="Không giới hạn" inputmode="numeric"><span aria-hidden="true">₫</span></span></label>
+<label>Giá đến <span class="dish-price-input"><input type="number" min="0" step="1" name="maxPrice" value="<%= state.maxPrice %>" placeholder="Không giới hạn" inputmode="numeric"><span aria-hidden="true">₫</span></span></label>
+<button class="dish-filter-apply" type="submit">Áp dụng bộ lọc</button>
+</div>
+</details>
+<a class="dish-reset" href="/dishes#menu-results">Xóa điều kiện</a>
+</div>
+</form>
+</div>
+<section data-catalog-view="<%= state.view %>" id="menu-results" aria-label="Kết quả món ăn">
+<div class="dish-results-toolbar">
+<div class="dish-result-count"><span class="dish-result-dot" aria-hidden="true"></span><strong><%= total %></strong> món ăn<% if(q) { %><span class="dish-result-query">cho “<%= q %>”</span><% } %></div>
+<div class="dish-display-controls">
+<label>Hiển thị<select name="view" form="dish-search-form" data-catalog-display><% for(const [v,n] of Object.entries({pages:'Số trang',more:'Tải thêm',infinite:'Cuộn vô hạn'})){ %><option value="<%= v %>" <%= state.view===v?'selected':'' %>><%= n %></option><% } %></select></label>
+<label>Mỗi trang<select name="pageSize" form="dish-search-form" data-catalog-display><% [6,12,24,48,100].forEach(n=>{ %><option <%= state.pageSize===n?'selected':'' %>><%= n %></option><% }) %></select></label>
+<label>Sắp xếp<select name="sort" form="dish-search-form" data-catalog-display><% Object.entries(sortOptions).forEach(([value,option]) => { %><option value="<%= value %>" <%= state.sort === value ? 'selected' : '' %>><%= option.label %></option><% }) %></select></label>
+<noscript><button class="dish-filter-apply" type="submit" form="dish-search-form">Áp dụng</button></noscript>
+</div>
+</div>
 <% if (!dishes.length) { %><div class="empty-state"><span class="feature-icon">✳</span><h2><%= count && state.page > pages ? 'Trang này chưa có món' : 'Chưa có món phù hợp' %></h2><p>Thử từ khóa khác hoặc quay lại trang đầu.</p><a class="button outline" href="<%= href({page:1}) %>">Về trang đầu</a><a class="back-link" href="/dishes">Xem tất cả món</a></div><% } %>
 <div class="dish-grid"><% dishes.forEach(dish => { %><%- include('../partials/dish-card', { dish }) %><% }) %></div>
 <% if (pages) { %><nav class="pagination menu-pagination" aria-label="Phân trang món ăn">
 <% if (state.page > 1) { %><a class="circle-button" aria-label="Trang món ăn trước" href="<%= href({page:Math.min(state.page - 1,pages)}) %>">←</a><% } %>
 <% pageNumbers.forEach((page,index) => { %><% if(index && page - pageNumbers[index-1] > 1) { %><span aria-hidden="true">…</span><% } %><a class="circle-button <%= page === state.page ? 'active' : '' %>" aria-label="Trang món ăn <%= page %>" <%= page === state.page ? 'aria-current=page' : '' %> href="<%= href({page}) %>"><%= page %></a><% }) %>
-<% if (state.page < pages) { %><a class="circle-button" aria-label="Trang món ăn tiếp" href="<%= href({page:state.page+1}) %>">→</a><% } %><span class="menu-page-summary">Trang <%= state.page %> / <%= pages %> · <%= pageSize %> món/trang</span></nav><% } %>
+<% if (state.page < pages) { %><a class="circle-button" data-next-page aria-label="Trang món ăn tiếp" href="<%= href({page:state.page+1}) %>">→</a><% } %><span class="menu-page-summary">Trang <%= state.page %> / <%= pages %> · <%= pageSize %> món/trang</span></nav><% } %>
 <p class="source-note">Giá demo không phải giá bán xác nhận của nhà hàng. Đầu bếp và nguyên liệu demo là gợi ý cho bài tập. Ảnh hồ sơ quán có thể không mô tả đúng món.</p>
-</section></main><script src="/js/dish-options.js" defer></script><%- include('../partials/footer') %>
+</section></main><script src="/js/catalog.js" defer></script><%- include('../partials/footer') %>

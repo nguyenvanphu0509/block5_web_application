@@ -158,4 +158,4 @@ Server paging và AJAX có thể dùng cùng nhau. Một cái quyết định n�
 Ở danh sách món ăn, nhóm em dùng server paging kết hợp AJAX. PostgreSQL chọn dữ liệu bằng LIMIT/OFFSET; React gọi API bằng fetch rồi cập nhật danh sách. Nhóm chọn cách này vì có hơn 1.000 món, không cần tải toàn bộ món về browser mỗi lần
 
 Phạm vi phát biểu cho đúng code hiện tại: danh sách món và quản trị món dùng phân trang SQL. Riêng danh sách nhà hàng ở trang chủ hiện còn lấy dữ liệu rồi lọc/cắt trong JavaScript phía backend; phần đó chưa dùng LIMIT/OFFSET tại PostgreSQL.
-## 
+##

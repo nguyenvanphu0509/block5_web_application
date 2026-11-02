@@ -6,7 +6,7 @@
       <div class="hero-tag"><span class="country-pill"><span class="flag" aria-hidden="true">★</span> VIỆT NAM · SÀI GÒN</span><span class="italic">Hương vị Việt</span></div>
       <div class="hero-photo-group" aria-label="Ba món ăn nổi bật">
         <% for (let i = 0; i < 3; i++) { const dish = featured[i]; %>
-        <a class="hero-photo <%= i === 1 ? 'center-photo' : '' %> image-fallback" href="<%= dish ? `/dishes/${dish.id}` : '/dishes' %>"><img src="<%= dish?.imagePath || ['/images/noodles.svg', '/images/rice.svg', '/images/rolls.svg'][i] %>" alt="<%= dish ? dish.name : 'Minh họa ẩm thực Việt' %>" width="600" height="600"><span><%= dish?.name || 'Một hương vị mới' %><small>SAIGON COLLECTION · 0<%= i + 1 %></small></span></a>
+        <a class="hero-photo <%= i === 1 ? 'center-photo' : '' %> image-fallback" href="<%= dish ? `/dishes/${dish.id}` : '/dishes' %>"><img src="<%= dishImage(dish, ['/images/noodles.svg', '/images/rice.svg', '/images/rolls.svg'][i]) %>" alt="<%= dish ? dish.name : 'Minh họa ẩm thực Việt' %>" width="600" height="600"><span><%= dish?.name || 'Một hương vị mới' %><small>SAIGON COLLECTION · 0<%= i + 1 %></small></span></a>
         <% } %>
       </div>
       <p class="eyebrow hero-eyebrow">CHẠM VÀO HƯƠNG VỊ ĐỊA PHƯƠNG</p>

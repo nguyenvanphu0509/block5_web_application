@@ -1,0 +1,9 @@
+import '../../api/src/config/env.js';
+import pg from 'pg';
+import {createApp} from '../src/app.js';
+import {createAuth} from '../src/auth/index.js';
+import {createFixture} from '../../tests/fixtures.js';
+const pool=new pg.Pool({connectionString:process.env.TEST_DATABASE_URL||process.env.DATABASE_URL});
+const app=createApp({db:createFixture().db,auth:createAuth({schema:process.env.AUTH_TEST_SCHEMA,pool,mailer:{sendMail:async()=>{}}})});
+const server=app.listen(0,'127.0.0.1',()=>process.send({port:server.address().port}));
+process.on('message',()=>server.close(async()=>{await pool.end();process.exit(0);}));

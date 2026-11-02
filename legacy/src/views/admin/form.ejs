@@ -2,7 +2,7 @@
 <main id="main" class="shell page-main admin-main"><%- include('../partials/admin-nav') %>
 <div class="form-card"><a class="back-link" href="<%= base %>">← Về danh sách</a><h2><%= id ? 'Một chút điều chỉnh' : 'Thêm một câu chuyện mới' %></h2><p class="muted">Các trường có dấu * là bắt buộc.</p>
 <% if (Object.keys(errors).length) { %><div class="error-summary" role="alert"><strong>Chưa thể lưu. Kiểm tra các trường sau:</strong><ul><% Object.entries(errors).forEach(([field, error]) => { %><li><a href="#<%= field %>"><%= error %></a></li><% }) %></ul></div><% } %>
-<form method="POST" enctype="<%= ['dishes','restaurants'].includes(resource) ? 'multipart/form-data' : 'application/x-www-form-urlencoded' %>" action="<%= id ? `${base}/${id}?_method=PATCH` : base %>">
+<form method="POST" enctype="<%= ['dishes','restaurants'].includes(resource) ? 'multipart/form-data' : 'application/x-www-form-urlencoded' %>" action="<%= id ? `${base}/${id}?_method=PATCH` : base %>"><input type="hidden" name="_csrf" value="<%= csrf %>">
 <% if (resource !== 'dishes') { %><div class="field"><label class="checkbox-label"><input type="checkbox" name="isDemo" value="true" <%= values.isDemo ? 'checked' : '' %>> Dữ liệu demo / minh họa</label></div><% } %>
 <div class="field"><label for="name">Tên <%= config.singular %> *</label><input id="name" name="name" value="<%= values.name ?? '' %>" required maxlength="120" <%= errors.name ? 'aria-invalid=true aria-describedby=name-error' : '' %>><% if (errors.name) { %><p class="field-error" id="name-error"><%= errors.name %></p><% } %></div>
 <% if (resource === 'restaurants') { %>
