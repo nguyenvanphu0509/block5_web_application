@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { mkdir, writeFile, copyFile } from 'node:fs/promises';
 
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('viet_cuisine_user', JSON.stringify({ id: 'e2e', username: 'E2E', email: 'e2e@example.test' })));
   await page.route('https://**', route => route.abort());
   const responses = []; page.__evidence = responses;
   page.on('response', async res => {
@@ -22,16 +23,14 @@ test.afterEach(async ({ page }, info) => {
 test('01-pages: advanced search, sort, page two and reload preserve URL', async ({ page }) => {
   await page.goto('/dishes');
   await expect(page.locator('.dish-card')).toHaveCount(12);
-  await page.getByText('Bộ lọc nâng cao', { exact: true }).click();
   await page.getByRole('searchbox').fill('pho');
-  await page.getByLabel('Loại món', { exact: true }).fill('Món nước');
+  await page.getByLabel('Loại món', { exact: true }).selectOption('Món nước');
   await page.getByLabel('Giá từ', { exact: true }).fill('0');
   await page.getByLabel('Giá đến', { exact: true }).fill('24000');
   await page.getByLabel('Trạng thái', { exact: true }).selectOption('true');
-  await page.getByRole('button', { name: 'Tìm kiếm' }).click();
+  await page.getByRole('button', { name: 'Tìm món ngon' }).click();
   await expect(page.getByText('20 món phù hợp', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Sắp xếp' }).click();
-  await page.getByRole('link', { name: 'Giá giảm dần' }).click();
+  await page.getByLabel('Sắp xếp', { exact: true }).selectOption('price-desc');
   await expect(page.locator('.dish-card h2').first()).toHaveText('Phở demo 25');
   await page.getByRole('link', { name: 'Trang 2', exact: true }).click();
   await expect(page.locator('.dish-card')).toHaveCount(8);
@@ -49,8 +48,7 @@ test('04-search-sort: fulltext and fuzzy keep search and filters when sorting', 
   for (const mode of ['fulltext', 'fuzzy']) {
     await page.goto(`/dishes?mode=${mode}&q=pho&category=${encodeURIComponent('Món nước')}&available=true&page=2`);
     await expect(page.locator('.dish-card')).toHaveCount(8);
-    await page.getByRole('button', { name: 'Sắp xếp' }).click();
-    await page.getByRole('link', { name: 'Giá giảm dần' }).click();
+    await page.getByLabel('Sắp xếp', { exact: true }).selectOption('price-desc');
     await expect(page.locator('.dish-card h2').first()).toHaveText('Phở demo 25');
     const params = new URL(page.url()).searchParams;
     expect(params.get('q')).toBe('pho');
@@ -60,8 +58,7 @@ test('04-search-sort: fulltext and fuzzy keep search and filters when sorting', 
     expect(params.get('page')).toBe('1');
     expect(params.get('sort')).toBe('price-desc');
     await expect(page.locator('.dish-card')).toHaveCount(12);
-    await page.getByRole('button', { name: 'Sắp xếp' }).click();
-    await page.getByRole('link', { name: 'Giá tăng dần' }).click();
+    await page.getByLabel('Sắp xếp', { exact: true }).selectOption('price-asc');
     await expect(page.locator('.dish-card h2').first()).toHaveText('Phở demo 2');
   }
 });
@@ -76,13 +73,48 @@ test('05-fulltext-syntax: submit OR, phrases and exclusions through the search f
       const url = new URL(res.url());
       return url.pathname === '/api/dishes' && url.searchParams.get('q') === query;
     });
-    await page.getByRole('button', { name: 'Tìm kiếm' }).click();
+    await page.getByRole('button', { name: 'Tìm món ngon' }).click();
     const body = await (await response).json();
     expect(body.ok).toBe(true);
     expect(body.data.total).toBe(total);
     await expect(page.locator('.dish-card')).toHaveCount(Math.min(total, 12));
-    await expect(page.getByRole('button', { name: 'Sắp xếp' })).toBeVisible();
+    await expect(page.getByLabel('Sắp xếp', { exact: true })).toBeVisible();
   }
+});
+
+test('06-discovery-panel: category chips, filters, reset and responsive sorting', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.goto('/dishes');
+  await expect(page.locator('.catalog-result-count')).toContainText('25');
+  await expect(page.getByRole('heading', { name: 'Hôm nay, bạn muốn ăn gì?' })).toBeVisible();
+  await expect(page.locator('.catalog-advanced')).toHaveAttribute('open', '');
+  await page.locator('#dish-search-section').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'artifacts/block7/catalog-desktop.png', fullPage: true });
+  await page.getByRole('searchbox').fill('pho');
+  await page.getByRole('button', { name: 'Món nước', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Món nước', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByLabel('Loại món', { exact: true })).toHaveValue('Món nước');
+  await expect(page).toHaveURL(/q=pho/);
+  await page.getByLabel('Giá đến', { exact: true }).fill('10000');
+  await page.getByRole('button', { name: 'Áp dụng bộ lọc' }).click();
+  await expect(page.locator('.catalog-result-count')).toContainText('11');
+  await page.getByLabel('Sắp xếp', { exact: true }).selectOption('price-desc');
+  await expect(page.locator('.dish-card h2').first()).toHaveText('Phở demo 11');
+  await page.reload();
+  await expect(page.getByLabel('Sắp xếp', { exact: true })).toHaveValue('price-desc');
+  await expect(page.getByRole('searchbox')).toHaveValue('pho');
+  await expect(page.getByLabel('Giá đến', { exact: true })).toHaveValue('10000');
+  await page.getByRole('button', { name: 'Xóa điều kiện' }).click();
+  await expect(page.locator('.catalog-result-count')).toContainText('25');
+  await expect(page.getByRole('searchbox')).toHaveValue('');
+  await expect(page.getByLabel('Sắp xếp', { exact: true })).toHaveValue('default');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('#dish-search-section').scrollIntoViewIfNeeded();
+  await expect(page.getByRole('button', { name: 'Tìm món ngon' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: 'artifacts/block7/catalog-mobile.png', fullPage: true });
+  await page.getByLabel('Sắp xếp', { exact: true }).selectOption('price-desc');
+  await expect(page.locator('.dish-card h2').first()).toHaveText('Phở demo 25');
 });
 
 test('02-more: append distinct items and ignore a stale search response', async ({ page }) => {
@@ -101,7 +133,7 @@ test('02-more: append distinct items and ignore a stale search response', async 
   });
   await page.getByRole('button', { name: 'Tải thêm', exact: true }).click(); await fetched;
   await page.getByRole('searchbox').fill('không tồn tại');
-  await page.getByRole('button', { name: 'Tìm kiếm' }).click();
+  await page.getByRole('button', { name: 'Tìm món ngon' }).click();
   await expect(page.getByText('Chưa có món phù hợp ở trang này.')).toBeVisible();
   release();
   await expect(page.locator('.dish-card')).toHaveCount(0);

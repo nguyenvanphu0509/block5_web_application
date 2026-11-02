@@ -14,3 +14,12 @@ export function homeHref(state, changes, anchor) {
   }
   return `/${params.size ? `?${params}` : ''}#${anchor}`;
 }
+
+// SSR-only mirror of the existing reference photo; do not alter shared DB/SPA.
+const localDishImages = new Map([
+ ['https://www.huongnghiepaau.com/wp-content/uploads/2018/01/cach-lam-cha-ca-la-vong.jpg','/images/cha-ca-la-vong.jpg'],
+ ['https://cdn.sbfoods.co.jp/recipes/08983_l.jpg','/images/cha-ca-la-vong.jpg'],
+]);
+export function dishImage(dish, fallback='/images/noodles.svg') {
+ return localDishImages.get(dish?.imagePath) || dish?.imagePath || fallback;
+}

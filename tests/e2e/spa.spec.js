@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('viet_cuisine_user', JSON.stringify({ id: 'e2e', username: 'E2E', email: 'e2e@example.test' })));
   page.__reactErrors = [];
   page.on('console', message => { if (message.type() === 'error' && /controlled|unique.*key|React.*error/i.test(message.text())) page.__reactErrors.push(message.text()); });
   await page.route('https://**', route => route.abort());
@@ -54,18 +55,13 @@ test('direct URLs, reload, notFound and technical errors', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test('search, sort dialog, URL state and navigation do not reload document', async ({ page }) => {
+test('search, sort dropdown, URL state and navigation do not reload document', async ({ page }) => {
   await page.goto('/dishes'); await expect(page.locator('.dish-card').first()).toBeVisible();
   await page.evaluate(() => window.__documentMarker = 'same');
   await page.getByRole('searchbox', { name: 'Tìm món ăn' }).fill('pho');
-  await page.getByRole('button', { name: 'Tìm kiếm' }).click();
+  await page.getByRole('button', { name: 'Tìm món ngon' }).click();
   await expect(page).toHaveURL(/q=pho/); await expect(page.locator('.dish-card')).toHaveCount(1);
-  await page.getByRole('button', { name: 'Sắp xếp' }).click();
-  await expect(page.getByRole('dialog')).toBeVisible();
-  await page.keyboard.press('Escape'); await expect(page.getByRole('dialog')).not.toBeVisible();
-  await expect(page.getByRole('button', { name: 'Sắp xếp' })).toBeFocused();
-  await page.getByRole('button', { name: 'Sắp xếp' }).click();
-  await page.getByRole('link', { name: 'Giá giảm dần' }).click();
+  await page.getByLabel('Sắp xếp', { exact: true }).selectOption('price-desc');
   await expect(page).toHaveURL(/sort=price-desc/);
   await page.locator('.dish-card h2 a').first().click(); await expect(page).toHaveURL(/\/dishes\/\d+$/);
   await expect(page.locator('.dish-detail')).toBeVisible();
