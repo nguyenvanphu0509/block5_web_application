@@ -72,7 +72,7 @@ function CatalogSearch({ params, categories, onSearch, onReset }) {
   const [method, setMethod] = useState(() => ['fulltext', 'fuzzy'].includes(params.get('mode')) ? params.get('mode') : 'basic');
   const [category, setCategory] = useState(params.get('category') || '');
   const allCategories = [...new Set([...categories, ...(category ? [category] : [])])];
-  const preferred = ['Ẩm thực đường phố', 'Ăn nhẹ', 'Bánh', 'Bánh mì', 'Burger', 'Cơm'];
+  const preferred = ['Hải sản', 'Rượu vang', 'Ăn nhẹ', 'Bánh', 'Ẩm thực đường phố', 'Cơm'];
   const chips = [...preferred.filter(item => allCategories.includes(item)), ...allCategories.filter(item => !preferred.includes(item))].slice(0, 6);
   if (category && !chips.includes(category)) chips.splice(5, 1, category);
   const apply = (overrides = {}) => {
@@ -93,7 +93,7 @@ function CatalogSearch({ params, categories, onSearch, onReset }) {
     <div className="catalog-category-chips" role="group" aria-label="Chọn nhanh loại món">{['', ...chips].map(item => <button key={item} type="button" aria-pressed={category === item} onClick={() => { setCategory(item); apply({ category: item }); }}>{item || 'Tất cả món'}</button>)}</div>
     <div className="catalog-filter-section">
       <button type="button" className="catalog-reset" onClick={onReset}>Xóa điều kiện</button>
-      <details className="catalog-advanced" open>
+      <details className="catalog-advanced">
         <summary><SearchIcon kind="filter"/><span>Bộ lọc nâng cao</span><SearchIcon kind="chevron"/></summary>
         <div className="catalog-filter-panel">
           <div className="catalog-filter-fields">

@@ -29,15 +29,16 @@ function App() {
         <header className="site-header shell">
           <Link className="brand" to="/">
             <span className="brand-logo"><img src="/images/logo.png" alt="" width="2048" height="2048"/></span>
-            <span>ẨM THỰC VIỆT<span className="brand-sub">TINH HOA HƯƠNG VỊ</span></span>
+            <span>SEACLUB · ẨM THỰC VIỆT<span className="brand-sub">SEAFOOD + WINE · TINH HOA HƯƠNG VỊ</span></span>
           </Link>
           <nav className="desktop-nav" aria-label="Điều hướng chính">
-            <Link to="/#destinations">Khám phá</Link>
-            <Link to={dishesLink}>Món ăn</Link>
-            <Link to="/#journey">Cẩm nang</Link>
-            <Link to="/#about">Về chúng tôi</Link>
+            <Link to={dishesLink}>Menu</Link>
+            <Link to="/#about">About</Link>
+            <Link to="/#offer">Events</Link>
+            <Link to="/#destinations">Contacts</Link>
           </nav>
           <div className="header-actions">
+            <a className="header-book-table-link" href="/#booking">Book a table</a>
             {isAuthenticated ? (
               <div className="header-auth-group">
                 <AccountMenu/>

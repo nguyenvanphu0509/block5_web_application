@@ -1,0 +1,29 @@
+[
+  {
+    "key": "oysters-lemon",
+    "name": "Hàu trên đá lạnh cùng chanh vàng",
+    "category": "Hải sản",
+    "photo": "oysters",
+    "author": "Mitili Mitili",
+    "url": "https://unsplash.com/photos/TnZnJO4DSdQ",
+    "description": "Hàu bày trên đá lạnh, dùng kèm chanh vàng. Gợi ý thực đơn minh họa, chưa gắn với nhà hàng cụ thể."
+  },
+  {
+    "key": "lobster-platter",
+    "name": "Tôm hùm nướng, tôm biển và sò điệp",
+    "category": "Hải sản",
+    "photo": "lobster",
+    "author": "Sunira Moses",
+    "url": "https://unsplash.com/photos/qft0cj-wdF0",
+    "description": "Đĩa tôm hùm, tôm biển và sò điệp cùng đậu xanh, chanh và thảo mộc. Gợi ý thực đơn minh họa."
+  },
+  {
+    "key": "rose-wine",
+    "name": "Vang rosé và bánh mì cà chua",
+    "category": "Rượu vang",
+    "photo": "wine",
+    "author": "Andrei Sidorov",
+    "url": "https://unsplash.com/photos/MdUvgBL7Dg0",
+    "description": "Vang rosé kết hợp bánh mì cà chua và thảo mộc. Gợi ý thưởng thức minh họa, không xác nhận nhãn rượu hay niên vụ."
+  }
+]

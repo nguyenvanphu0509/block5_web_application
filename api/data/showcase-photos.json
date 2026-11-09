@@ -1,0 +1,26 @@
+[
+  {
+    "path": "/images/editorial-oysters.jpg",
+    "sourceUrl": "https://unsplash.com/photos/TnZnJO4DSdQ",
+    "author": "Mitili Mitili",
+    "license": "Unsplash License"
+  },
+  {
+    "path": "/images/editorial-lobster.jpg",
+    "sourceUrl": "https://unsplash.com/photos/qft0cj-wdF0",
+    "author": "Sunira Moses",
+    "license": "Unsplash License"
+  },
+  {
+    "path": "/images/editorial-wine.jpg",
+    "sourceUrl": "https://unsplash.com/photos/MdUvgBL7Dg0",
+    "author": "Andrei Sidorov",
+    "license": "Unsplash License"
+  },
+  {
+    "path": "/images/editorial-dining.jpg",
+    "sourceUrl": "https://unsplash.com/photos/Jxt-cMgVrts",
+    "author": "Luc Sauvage",
+    "license": "Unsplash License"
+  }
+]

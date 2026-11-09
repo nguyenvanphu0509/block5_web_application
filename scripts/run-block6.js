@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const production = process.argv.includes('--production');
 const commands = [
-  { args: ['src/server.js'], cwd: `${root}api` },
+  { args: [...(production ? [] : ['--watch']), 'src/server.js'], cwd: `${root}api` },
   production ? { args: ['web/server.js'], cwd: root } : { args: [fileURLToPath(new URL('../node_modules/vite/bin/vite.js', import.meta.url))], cwd: `${root}web` },
 ];
 let stopping = false;

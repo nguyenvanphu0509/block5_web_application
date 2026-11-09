@@ -8,32 +8,32 @@ import './auth.css';
 
 const SLIDES = [
   {
-    image: '/images/login.jpg',
-    title: 'Hải Sản Cao Cấp & Tinh Hoa Ẩm Thực',
-    desc: 'Trải nghiệm không gian ẩm thực tinh tế, kết nối hương vị tươi ngon và nghệ thuật gastronomy hiện đại.',
-    tagline: 'Khám Phá Thế Giới Ẩm Thực,<br />Vượt Mọi Giới Hạn!',
-    pill: 'Bắt đầu hành trình hôm nay!',
+    image: '/images/editorial-dining.jpg',
+    title: 'Không Gian Dùng Bữa Tinh Tế',
+    desc: 'Ánh sáng ấm, bàn ăn thanh lịch và những ly vang chờ một buổi tối trọn vẹn.',
+    tagline: 'Một Bàn Ăn Đẹp,<br />Một Trải Nghiệm Đáng Nhớ!',
+    pill: 'Khám phá không gian ẩm thực',
   },
   {
-    image: '/images/auth-seafood.jpg',
-    title: 'Hải Sản Nướng Tổng Hợp Miền Biển',
-    desc: 'Thưởng thức đĩa hải sản nướng thơm lừng đậm đà hương vị biển cả cùng nước chấm thảo mộc đặc sắc.',
-    tagline: 'Tinh Hoa Hải Vị Biển Xanh,<br />Đậm Đà Khó Quên!',
-    pill: 'Khám phá món hải sản!',
+    image: '/images/editorial-lobster.jpg',
+    title: 'Tôm Hùm, Tôm Biển & Sò Điệp',
+    desc: 'Đĩa hải sản nướng cùng thảo mộc, đậu xanh và chanh tươi.',
+    tagline: 'Hương Vị Biển,<br />Trong Từng Đĩa Ăn!',
+    pill: 'Khám phá thực đơn hải sản',
   },
   {
     image: '/images/auth-salmon.jpg',
-    title: 'Cá Hồi Áp Chảo Thượng Hạng',
-    desc: 'Cá hồi áp chảo mềm ngọt hòa quyện sốt bơ chanh béo ngậy, dùng kèm măng tây tươi giòn thanh mát.',
+    title: 'Cá Hồi Áp Chảo',
+    desc: 'Phi lê cá hồi vàng mặt, dùng cùng rau xanh và phần topping rau củ tươi.',
     tagline: 'Mỗi Bữa Ăn Là Một<br />Khoảnh Khắc Đáng Nhớ!',
-    pill: 'Xem món cá hồi đặc biệt!',
+    pill: 'Xem món cá hồi',
   },
   {
-    image: '/images/auth-clams.jpg',
-    title: 'Nghêu Hấp Chanh Sả Thanh Mát',
-    desc: 'Nghêu biển tươi roi rói hòa trong nước dùng thơm lừng vị sả, ớt tươi và lá chanh ấm nồng.',
-    tagline: 'Hương Vị Thiên Nhiên,<br />Khơi Nguồn Cảm Hứng!',
-    pill: 'Khám phá thực đơn biển!',
+    image: '/images/editorial-wine.jpg',
+    title: 'Vang Rosé & Món Khai Vị',
+    desc: 'Hai ly vang rosé bên bánh mì cà chua và những nguyên liệu cho bữa tối.',
+    tagline: 'Một Chút Vang,<br />Một Tối Thảnh Thơi!',
+    pill: 'Khám phá lựa chọn rượu vang',
   },
 ];
 
@@ -500,8 +500,8 @@ export function AuthPage({ initialMode = 'login' }) {
                 className={`auth-banner-image ${i === slideIndex ? 'active' : ''}`}
                 loading="eager"
                 onError={(event) => {
-                  if (event.currentTarget.getAttribute('src') !== '/images/login.jpg') {
-                    event.currentTarget.src = '/images/login.jpg';
+                  if (event.currentTarget.getAttribute('src') !== '/images/editorial-dining.jpg') {
+                    event.currentTarget.src = '/images/editorial-dining.jpg';
                   }
                 }}
               />

@@ -1,3 +1,4 @@
+import { compareRestaurants } from '../../shared/presentation.js';
 import { Prisma } from '@prisma/client';
 import { normalizeSearch } from './lib/search.js';
 import { prepareFulltextQuery } from './lib/fulltext-query.js';
@@ -59,7 +60,10 @@ export function dishQueries(s) {
   if (s.maxPrice !== null) predicates.push(Prisma.sql`d.price <= ${s.maxPrice}`);
   if (s.district) predicates.push(Prisma.sql`r.district = ${s.district}`);
   if (s.ingredientId) predicates.push(Prisma.sql`EXISTS (SELECT 1 FROM dish_ingredients di WHERE di."dishId" = d.id AND di."ingredientId" = ${s.ingredientId})`);
-  const order = { default: 'd.id ASC', name: 'd.name ASC, d.id ASC', 'price-asc': 'd.price ASC NULLS LAST, d.id ASC', 'price-desc': 'd.price DESC NULLS LAST, d.id ASC', restaurant: 'r.name ASC NULLS LAST, d.name ASC, d.id ASC', district: 'r.district ASC NULLS LAST, r.name ASC NULLS LAST, d.name ASC, d.id ASC', category: 'd.category ASC NULLS LAST, d.name ASC, d.id ASC', chef: 'c.name ASC NULLS LAST, d.name ASC, d.id ASC' };
+  const order = { default: `d.available DESC, CASE d."importKey"
+    WHEN 'showcase:oysters-lemon' THEN 0 WHEN 'showcase:lobster-platter' THEN 1 WHEN 'showcase:rose-wine' THEN 2
+    WHEN 'user-image:photo-1467003909585-2f8a72700288' THEN 3
+    ELSE CASE WHEN d.category IN ('Hải sản', 'Rượu vang') THEN 10 WHEN d."priceIsDemo" THEN 30 ELSE 20 END END ASC, d.id ASC`, name: 'd.name ASC, d.id ASC', 'price-asc': 'd.price ASC NULLS LAST, d.id ASC', 'price-desc': 'd.price DESC NULLS LAST, d.id ASC', restaurant: 'r.name ASC NULLS LAST, d.name ASC, d.id ASC', district: 'r.district ASC NULLS LAST, r.name ASC NULLS LAST, d.name ASC, d.id ASC', category: 'd.category ASC NULLS LAST, d.name ASC, d.id ASC', chef: 'c.name ASC NULLS LAST, d.name ASC, d.id ASC' };
   const from = Prisma.sql`FROM dishes d LEFT JOIN restaurants r ON r.id = d."restaurantId" LEFT JOIN chefs c ON c.id = d."chefId" WHERE ${Prisma.join(predicates, ' AND ')}`;
   const ordering = score && s.sort === 'default' ? Prisma.sql`${score} DESC, d.id ASC` : Prisma.raw(order[s.sort]);
   return {
@@ -71,6 +75,7 @@ export async function listRecords(db, resource, model, query) {
   const state = queryState(query);
   if (resource !== 'dishes') {
     const rows = await model.findMany({ ...(resource === 'restaurants' ? { include: { dishes: true } } : {}), orderBy: { id: 'asc' } });
+    if (resource === 'restaurants' && state.sort === 'default') rows.sort(compareRestaurants);
     const filtered = resource === 'restaurants' ? filterRestaurants(rows, state.q) : rows.filter(x => normalizeSearch(x.name).includes(normalizeSearch(state.q)));
     const start = (state.page - 1) * state.pageSize;
     return { data: filtered.slice(start, start + state.pageSize), meta: { count: filtered.length, total: filtered.length, page: state.page, pageSize: state.pageSize, preview: false } };

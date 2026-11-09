@@ -5,6 +5,42 @@ import { useLoad } from '../hooks.js';
 import { useAuth } from '../AuthContext.jsx';
 import { Pager, Picture, RestaurantCard, StateView } from '../components.jsx';
 
+const INSPIRING_MEALS = {
+  rawbar: {
+    id: 'rawbar',
+    tab: 'SEAFOOD & RAW BAR',
+    eyebrow: 'OUR SIGNATURE PAIRING',
+    title: 'Pan-Seared Salmon & Seasonal Greens',
+    desc: 'Phi lê cá hồi áp chảo vàng mặt, dùng cùng rau xanh và topping rau củ. Một gợi ý nhẹ nhàng cho bữa tối.',
+    signature: 'Cá hồi áp chảo · Gợi ý thưởng thức',
+    image: '/images/auth-salmon.jpg',
+    fallback: '/images/rolls.svg',
+    alt: 'Cá hồi áp chảo cùng rau xanh và topping rau củ',
+  },
+  wine: {
+    id: 'wine',
+    tab: 'WINE PAIRING',
+    eyebrow: 'SOMMELIER WINE SELECTION',
+    title: 'Rosé & Tomato Bruschetta',
+    desc: 'Vang rosé bên bánh mì nướng cà chua và thảo mộc, gợi ý một khởi đầu thư thả cho buổi tối.',
+    signature: 'Wine & Dine · Gợi ý kết hợp',
+    image: '/images/editorial-wine.jpg',
+    fallback: '/images/restaurant.svg',
+    alt: 'Hai ly vang rosé và bánh mì cà chua',
+  },
+  dessert: {
+    id: 'dessert',
+    tab: 'DESSERT & COCKTAIL',
+    eyebrow: 'AFTER DINNER DELIGHTS',
+    title: 'Citrus & Berry Cocktails',
+    desc: 'Bộ ba cocktail sắc màu với chanh vàng, bạc hà và trái cây, một gợi ý thư giãn sau bữa tối.',
+    signature: 'Cocktail · Gợi ý sau bữa tối',
+    image: '/images/meal-dessert.jpg',
+    fallback: '/images/rice.svg',
+    alt: 'Ba ly cocktail trang trí bằng chanh, bạc hà và trái cây',
+  },
+};
+
 function RestaurantSearch({ initial, onSearch }) {
   const [text, setText] = useState(initial), [suggestions, setSuggestions] = useState([]), [active, setActive] = useState(-1), [suggestionPending, setSuggestionPending] = useState(false);
   useEffect(() => {
@@ -33,114 +69,162 @@ export function Home() {
   }, [state.result]);
   const data = state.result?.data || (state.status === 'loading' ? previousData.current : null);
   const refreshing = state.status === 'loading' && !!data;
+  const [activeMealTab, setActiveMealTab] = useState('rawbar');
+  const currentMeal = INSPIRING_MEALS[activeMealTab] || INSPIRING_MEALS.rawbar;
   const href = (changes, anchor) => { const next = new URLSearchParams(params); for (const [key, value] of Object.entries(changes)) next.set(key, value); return `/?${next}#${anchor}`; };
   const search = value => { const next = new URLSearchParams(params); next.set('destinationQ', value); next.set('destinationPage', '1'); setParams(next); };
 
   return <main id="main" tabIndex="-1">
     {refreshing && <p className="sr-only" role="status">Đang tải nội dung…</p>}
     
-    {/* HERO SECTION */}
-    <section className="hero">
-      <div className="hero-landscape landscape">
-        <Picture src="/images/banner.jpg" fallback="/Banner.jpeg" alt="SEACLUB Seafood Restaurant & Wine" width="2200" height="1200"/>
+    {/* HERO SECTION: Fully recreated UI matching SEACLUB seafood & wine banner (Pure CSS/HTML, No pasted background image) */}
+    <section className="hero banner-hero-section">
+      {/* Background radial atmosphere, compass orbit rings & faint typography watermark */}
+      <div className="banner-backdrop" aria-hidden="true">
+        <div className="banner-glow-spot"></div>
+        <div className="banner-orbit-circle circle-lg"></div>
+        <div className="banner-orbit-circle circle-sm"></div>
+        <span className="banner-watermark-text">OYSTERS</span>
       </div>
-      <div className="hero-content shell">
-        {/* Floating artisanal decorations matching Appetito sample */}
-        <div className="hero-fresh-badge" aria-hidden="true">
-          <span className="badge-so">SO</span>
-          <span className="badge-fresh">FRESH</span>
-        </div>
-        <div className="hero-lemon-slice" aria-hidden="true">
-          <svg viewBox="0 0 100 100" fill="none">
-            <circle cx="50" cy="50" r="44" fill="#F4A261" stroke="#E9C46A" strokeWidth="4"/>
-            <circle cx="50" cy="50" r="37" fill="#FFFDF8"/>
-            <path d="M50 16 L50 48 M50 84 L50 52 M16 50 L48 50 M84 50 L52 50 M26 26 L48 48 M74 74 L52 52 M26 74 L48 52 M74 26 L52 48" stroke="#E9C46A" strokeWidth="3"/>
-          </svg>
+
+      <div className="shell banner-hero-grid">
+        {/* LEFT COLUMN: Classical typography, subtitle, description, buttons & bottom-left dish */}
+        <div className="banner-hero-left">
+          <span className="banner-eyebrow">seafood + wine · ẩm thực đương đại</span>
+          <h1 className="banner-title">
+            FISH RESTAURANT<br />
+            <em>TINH HOA ẨM THỰC</em>
+          </h1>
+          <p className="banner-desc">
+            Delicious food and fine wine. Hải sản tươi sống cùng các dòng vang hảo hạng tuyển chọn, kiến tạo trải nghiệm ẩm thực đỉnh cao giữa lòng Sài Gòn.
+          </p>
+          <div className="banner-actions">
+            <Link className="button banner-btn-menu" to={dishesLink}>Menu · Xem thực đơn ↗</Link>
+            <a className="button outline banner-btn-outline" href="#offer">Khám phá Raw Bar ↓</a>
+          </div>
+
+          {/* Bottom-left corner dish like in Banner design */}
+          <div className="banner-corner-dish" aria-label="Món gợi ý đặc sắc">
+            <div className="corner-dish-img">
+              <img src="/images/hero-pasta-dish.jpg" alt="Mì mực đen hải sản" width="84" height="84" loading="lazy"/>
+            </div>
+            <div className="corner-dish-text">
+              <span className="corner-dish-badge">GỢI Ý ĐẶC BIỆT</span>
+              <strong>Mì mực đen hải sản</strong>
+              <small>Tôm sú biển · 18 $</small>
+            </div>
+          </div>
         </div>
 
-        <div className="hero-tag">
-          <span className="country-pill"><span className="flag">★</span> VIỆT NAM · SÀI GÒN</span>
-          <span className="italic">Hương vị Việt</span>
-        </div>
+        {/* RIGHT COLUMN: The majestic oyster platter, floating limes, price annotations & wine */}
+        <div className="banner-hero-right">
+          <div className="banner-platter-stage">
+            {/* The circular silver platter cutout from Banner */}
+            <div className="banner-platter-frame">
+              <img src="/images/oysters.png" alt="Khay hàu sữa tươi ướp đá và chanh vàng" width="440" height="440"/>
+            </div>
 
-        {/* 3 Featured Dishes - Center photo styled as circular ceramic dish plate */}
-        <div className="hero-photo-group" aria-label="Ba món ăn nổi bật">
-          {Array.from({ length: 3 }, (_, i) => {
-            const dish = data?.featured[i];
-            const target = dish ? (isAuthenticated ? `/dishes/${dish.id}` : `/login?redirect=${encodeURIComponent(`/dishes/${dish.id}`)}`) : dishesLink;
-            return <Link className={`hero-photo ${i === 1 ? 'center-photo' : ''} image-fallback`} key={i} to={target}>
-              <Picture src={dish?.imagePath} fallback={['/images/noodles.svg', '/images/rice.svg', '/images/rolls.svg'][i]} alt={dish?.name || 'Minh họa ẩm thực Việt'} width="600" height="600"/>
-              <span>{dish?.name || 'Một hương vị mới'}<small>SAIGON COLLECTION · 0{i + 1}</small></span>
-            </Link>;
-          })}
-        </div>
+            {/* Floating lemon slices (chanh 1, 2, 3, 4) arranged naturally around top, bottom & LEFT of oyster platter (NO overlap on wine bottle) */}
+            <div className="banner-floating-lime lime-top" aria-hidden="true">
+              <img src="/images/chanh1.png" alt="" width="44" height="44"/>
+            </div>
+            <div className="banner-floating-lime lime-left-top" aria-hidden="true">
+              <img src="/images/chanh2.png" alt="" width="46" height="40"/>
+            </div>
+            <div className="banner-floating-lime lime-bottom" aria-hidden="true">
+              <img src="/images/chanh3.png" alt="" width="46" height="42"/>
+            </div>
+            <div className="banner-floating-lime lime-left-bottom" aria-hidden="true">
+              <img src="/images/chanh4.png" alt="" width="42" height="42"/>
+            </div>
 
-        <span className="hero-taste-tag">TASTE THE FRESHNESS</span>
-        <p className="eyebrow hero-eyebrow">CHẠM VÀO HƯƠNG VỊ ĐỊA PHƯƠNG</p>
-        <h1>Khám phá tinh hoa<br/>ẩm thực <em>Sài Gòn</em></h1>
-        <p className="hero-description">Từ góc phố thân quen đến những trải nghiệm mới mẻ.<br/>Mỗi món ăn là một câu chuyện, mỗi hành trình là một hương vị.</p>
-        <div className="button-row">
-          <Link className="button" to={dishesLink}>Xem thực đơn ↗</Link>
-          <Link className="button outline" to="/#destinations">Khám phá địa điểm ↓</Link>
+            {/* Dressed oysters price annotation matching showroom tag */}
+            <div className="banner-tag platter-tag" aria-hidden="true">
+              <span>Dressed Oysters</span>
+              <strong>25 $</strong>
+              <small>Hàu sữa tươi Nha Trang</small>
+            </div>
+
+            {/* Wine bottle element & price annotation matching showroom tag */}
+            <div className="banner-wine-stage">
+              <img className="banner-wine-img" src="/images/wine.png" alt="Vang đỏ thượng hạng" width="90" height="200"/>
+              <div className="banner-tag wine-tag" aria-hidden="true">
+                <span>Tignanello Wine</span>
+                <strong>300 $</strong>
+                <small>Vang đỏ hảo hạng</small>
+              </div>
+            </div>
+          </div>
+
+          {/* Database featured dishes bar */}
+          <div className="hero-photo-group" aria-label="Ba món ăn nổi bật">
+            {Array.from({ length: 3 }, (_, i) => {
+              const dish = data?.featured[i];
+              const target = dish ? (isAuthenticated ? `/dishes/${dish.id}` : `/login?redirect=${encodeURIComponent(`/dishes/${dish.id}`)}`) : dishesLink;
+              return <Link className="hero-photo image-fallback" key={i} to={target}>
+                <Picture src={dish?.imagePath} fallback={['/images/noodles.svg', '/images/rice.svg', '/images/rolls.svg'][i]} alt={dish?.name || 'Minh họa ẩm thực Việt'} width="400" height="400"/>
+                <span>{dish?.name || 'Một hương vị mới'}<small>SAIGON · 0{i + 1}</small></span>
+              </Link>;
+            })}
+          </div>
         </div>
-        <div className="hero-footnote"><span className="little-leaf">✳</span> Được tạo nên từ cảm hứng ẩm thực Việt</div>
       </div>
     </section>
 
-    {/* UPPER DARK BAND: Welcome to Kitchen (Deep Midnight Navy #14212D) */}
-    <section className="dark-band kitchen-welcome" aria-label="Gian bếp Sài Gòn">
+    {/* UPPER DARK BAND: Welcome to Kitchen (Deep Midnight Ocean Navy #07131B - #0B1E2B) */}
+    <section className="dark-band kitchen-welcome" aria-label="Gian bếp Sài Gòn & Hải sản">
       <div className="shell dark-band-inner">
         <div className="dark-band-left">
-          <span className="dark-band-badge">SAIGON CULINARY HERITAGE</span>
+          <span className="dark-band-badge">SEAFOOD &amp; CONTEMPORARY DINING</span>
           <h2 className="dark-band-title">WELCOME TO OUR INCREDIBLE KITCHEN, PLEASE ENJOY.</h2>
         </div>
         <div className="dark-band-right">
           <p>
-            Chào mừng bạn đến với không gian ẩm thực giao hòa giữa bản sắc Sài Gòn mộc mạc và phong vị đương đại. Mỗi nguyên liệu tươi ngon từ chợ sớm, từng giọt nước dùng ninh thảo mộc đến ngọn lửa than hồng đều mang theo sự tận tâm và niềm đam mê vị giác.
+            Chào mừng bạn đến với không gian ẩm thực giao hòa giữa hải sản tươi ngon tuyển chọn và các dòng vang hảo hạng. Từng con hàu ướp lạnh, giọt rượu vang sánh mịn đến hương vị thảo mộc bản địa đều mang đến trải nghiệm vị giác thăng hoa.
           </p>
           <span className="dark-band-accent">CHẠM VÀO TINH HOA · TASTE THE FRESHNESS</span>
         </div>
       </div>
     </section>
 
-    {/* WE OFFER SECTION (Appetito style with circular plate & culinary list) */}
+    {/* SEAFOOD & RAW BAR (WE OFFER SECTION with circular plate & curated list) */}
     <section className="section shell we-offer-section" id="offer">
       <div className="we-offer-grid">
         <div className="we-offer-plate-wrap">
           <div className="ceramic-dish-plate">
-            <Picture src="/images/auth-seafood.jpg" fallback="/images/rolls.svg" alt="Món mực và hải sản tươi ngon Sài Gòn" width="600" height="600" loading="lazy"/>
-            <span className="plate-tag">NGUYÊN LIỆU TRONG NGÀY</span>
+            <Picture src="/images/editorial-oysters.jpg" fallback="/images/rolls.svg" alt="Hàu trên đá lạnh dùng cùng chanh vàng" width="600" height="600" loading="lazy"/>
+            <span className="plate-tag">SEAFOOD &amp; RAW BAR</span>
           </div>
         </div>
         <div className="we-offer-content">
-          <span className="section-badge">CHECK IT OUT</span>
+          <span className="section-badge">CHECK IT OUT · CUISINE SELECTION</span>
           <h2>WE OFFER</h2>
-          <p className="we-offer-desc">Những món ngon đặc sắc làm nên nét duyên ẩm thực của thành phố mến khách.</p>
+          <p className="we-offer-desc">Hải sản tươi sống, bộ sưu tập vang hảo hạng và ẩm thực Sài Gòn tinh hoa.</p>
           <ul className="we-offer-list">
             <li>
               <div className="we-offer-item-head">
-                <span className="we-offer-icon">🍜</span>
+                <span className="we-offer-icon">🦪</span>
                 <div>
-                  <strong>MÓN NƯỚC & PHỞ THẢO MỘC</strong>
-                  <p>Nước dùng thanh ngọt hầm từ xương bò và hoa hồi, quế thanh, thảo quả tươi mới.</p>
+                  <strong>SEAFOOD &amp; RAW BAR</strong>
+                  <p>Hàu trên đá lạnh cùng chanh vàng, cá hồi áp chảo và những đĩa hải sản nướng.</p>
                 </div>
               </div>
             </li>
             <li>
               <div className="we-offer-item-head">
-                <span className="we-offer-icon">🐙</span>
+                <span className="we-offer-icon">🍷</span>
                 <div>
-                  <strong>HẢI SẢN & ĐẶC SẢN NƯỚNG SÀI GÒN</strong>
-                  <p>Hải sản tươi sống nướng mỡ hành, sốt tiêu đen và muối ớt xanh đậm đà.</p>
+                  <strong>WINE CELLAR &amp; PAIRING</strong>
+                  <p>Khám phá vang rosé và những gợi ý kết hợp rượu vang với món khai vị, hải sản.</p>
                 </div>
               </div>
             </li>
             <li>
               <div className="we-offer-item-head">
-                <span className="we-offer-icon">🥗</span>
+                <span className="we-offer-icon">🍲</span>
                 <div>
-                  <strong>MÓN CUỐN & RAU THƠM BẢN ĐỊA</strong>
-                  <p>Gỏi cuốn tôm thịt, chả giò giòn tan kèm các loại rau rừng thanh mát.</p>
+                  <strong>SAIGON CONTEMPORARY CUISINE</strong>
+                  <p>Những món ăn được trình bày chỉn chu, từ hương vị Việt đến các gợi ý dùng bữa đương đại.</p>
                 </div>
               </div>
             </li>
@@ -150,57 +234,73 @@ export function Home() {
     </section>
 
     {/* PHOTOGRAPHIC GALLERY STRIP */}
-    <div className="ingredients-gallery-strip" aria-label="Bộ sưu tập nguyên liệu tươi ngon">
+    <div className="ingredients-gallery-strip" aria-label="Bộ sưu tập nguyên liệu tươi ngon & hầm rượu vang">
       <figure className="gallery-strip-item">
-        <Picture src="/images/auth-salmon.jpg" fallback="/images/restaurant.svg" alt="Hải sản tươi sạch" width="600" height="400" loading="lazy"/>
-        <figcaption>HẢI SẢN TƯƠI MỖI NGÀY</figcaption>
+        <Picture src="/images/editorial-lobster.jpg" fallback="/images/restaurant.svg" alt="Tôm hùm nướng, tôm biển và sò điệp" width="600" height="400" loading="lazy"/>
+        <figcaption>SEAFOOD GRILL · TÔM HÙM &amp; SÒ ĐIỆP</figcaption>
       </figure>
       <figure className="gallery-strip-item">
-        <Picture src="/images/auth-clams.jpg" fallback="/images/restaurant.svg" alt="Nghêu sò tươi ngon" width="600" height="400" loading="lazy"/>
-        <figcaption>NGỌT THANH TỪ BIỂN VIỆT</figcaption>
+        <Picture src="/images/editorial-wine.jpg" fallback="/images/restaurant.svg" alt="Hai ly vang rosé cùng bánh mì cà chua" width="600" height="400" loading="lazy"/>
+        <figcaption>WINE PAIRING · ROSÉ &amp; MÓN KHAI VỊ</figcaption>
       </figure>
       <figure className="gallery-strip-item">
-        <Picture src="/images/auth-seafood.jpg" fallback="/images/restaurant.svg" alt="Hương vị Sài Gòn" width="600" height="400" loading="lazy"/>
-        <figcaption>GIA VỊ SÀI GÒN NỒNG ĐẬM</figcaption>
+        <Picture src="/images/editorial-dining.jpg" fallback="/images/restaurant.svg" alt="Bàn ăn thanh lịch trong không gian ánh sáng ấm" width="600" height="400" loading="lazy"/>
+        <figcaption>CONTEMPORARY DINING · KHÔNG GIAN BÀN TIỆC</figcaption>
       </figure>
     </div>
 
-    {/* INSPIRING MEALS SECTION (Appetito style) */}
+    {/* INSPIRING MEALS & CELLAR SECTION */}
     <section className="section shell journey" id="journey">
       <div className="section-heading text-center">
-        <span className="section-badge">TASTY AND CRUNCHY</span>
-        <h2>INSPIRING MEALS</h2>
-        <p>Những món ăn khơi nguồn cảm hứng mỗi ngày từ gian bếp ẩm thực Sài Gòn.</p>
+        <span className="section-badge">TASTY AND QUALITY · WINE &amp; DINE</span>
+        <h2>INSPIRING MEALS &amp; CELLAR</h2>
+        <p>Những món ăn thượng hạng kết hợp ăn ý cùng danh mục vang tinh tuyển từ toà soạn.</p>
       </div>
 
       {/* Top Meal Showcase with Signature */}
       <div className="top-meal-feature">
-        <div className="top-meal-tabs">
-          <span className="tab-pill active">MÓN CHÍNH</span>
-          <span className="tab-pill">TRÁNG MIỆNG</span>
-          <span className="tab-pill">THỨC UỐNG</span>
+        <div className="top-meal-tabs" role="tablist" aria-label="Lựa chọn món ăn và rượu vang">
+          {Object.entries(INSPIRING_MEALS).map(([key, item]) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={activeMealTab === key}
+              className={`tab-pill ${activeMealTab === key ? 'active' : ''}`}
+              onClick={() => setActiveMealTab(key)}
+            >
+              {item.tab}
+            </button>
+          ))}
         </div>
-        <div className="top-meal-card">
+        <div className="top-meal-card" role="tabpanel" key={currentMeal.id}>
           <div className="top-meal-text">
-            <span className="eyebrow">OUR TOP MEAL</span>
-            <h3>Gợi ý món ăn nổi bật</h3>
-            <p>Được thực khách và toà soạn bình chọn nhiều nhất tuần qua với hương vị chuẩn mực.</p>
-            <span className="chef-signature">J.L. Mc · Saigon Table</span>
+            <span className="eyebrow">{currentMeal.eyebrow}</span>
+            <h3>{currentMeal.title}</h3>
+            <p>{currentMeal.desc}</p>
+            <span className="chef-signature">{currentMeal.signature}</span>
           </div>
           <div className="top-meal-thumb">
-            <Picture src="/images/auth-salmon.jpg" fallback="/images/rice.svg" alt="Top meal" width="220" height="160" loading="lazy"/>
+            <Picture
+              src={currentMeal.image}
+              fallback={currentMeal.fallback}
+              alt={currentMeal.alt}
+              width="220"
+              height="160"
+              loading="lazy"
+            />
           </div>
         </div>
       </div>
     </section>
 
-    {/* SECOND DARK BAND: OUR FULL MENU (Deep Midnight Navy #14212D) */}
-    <section className="dark-band full-menu-banner" aria-label="Bộ sưu tập thực đơn">
+    {/* SECOND DARK BAND: OUR FULL MENU (Deep Midnight Ocean Navy #07131B - #0B1E2B) */}
+    <section className="dark-band full-menu-banner" aria-label="Bộ sưu tập thực đơn & hầm vang">
       <div className="shell dark-menu-content">
         <span className="dark-band-badge">TASTY AND QUALITY · BỘ SƯU TẬP</span>
         <h2>OUR FULL MENU</h2>
         <p>
-          Trải nghiệm hành trình ẩm thực phong phú từ những món ăn đường phố dân dã đến các địa điểm ẩm thực đạt danh hiệu Michelin tại Sài Gòn.
+          Hành trình khám phá trọn vẹn từ Raw Bar tươi sống, hầm vang Wine Cellar đến các địa điểm ẩm thực đạt danh hiệu Michelin Guide tại Sài Gòn.
         </p>
         <Link className="button dark-menu-btn" to={dishesLink}>XEM TOÀN BỘ THỰC ĐƠN ↗</Link>
       </div>
@@ -315,11 +415,6 @@ export function Home() {
     {/* FINAL CTA / ABOUT */}
     <section className="final-cta" id="about">
       <div className="shell final-content">
-        <div className="cta-photo-group">
-          {['rolls', 'greens', 'rice'].map(x => (
-            <Picture key={x} src={`/images/${x}.svg`} alt="Minh họa hương vị Việt" width="600" height="600" loading="lazy"/>
-          ))}
-        </div>
         <span className="section-badge">A LITTLE CURIOSITY. A NEW FLAVOUR.</span>
         <h2>Sẵn sàng khám phá<br/><em>hương vị tiếp theo?</em></h2>
         <p>Hãy để một món ăn mới mở ra một câu chuyện mới.</p>

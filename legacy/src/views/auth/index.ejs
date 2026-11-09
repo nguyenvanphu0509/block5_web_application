@@ -32,10 +32,10 @@
 <% } else { %><p class="otp-help">Hãy yêu cầu một liên kết mới để đặt lại mật khẩu.</p><a class="auth-start-btn" href="/forgot">Yêu cầu liên kết mới</a><% } %>
 <% if(mode==='activate') { %><form data-auth-form class="otp-resend" method="POST" action="/activate/resend"><input type="hidden" name="_csrf" value="<%= csrf %>"><% if(email) { %><input type="hidden" name="email" value="<%= email %>"><% }else{ %><label>Email<input type="email" name="email" required></label><% } %><button class="button" type="submit" data-resend-until="<%= resendUntil %>">Gửi lại OTP</button><p class="otp-help">Chưa nhận được? Kiểm tra thư rác. Mỗi lần gửi cách nhau ít nhất 60 giây; mã mới thay mã cũ.</p></form><% } %>
 <nav class="auth-footer-links" aria-label="Hỗ trợ tài khoản"><a href="/forgot">Quên mật khẩu</a></nav></section><aside class="auth-right-column"><div class="auth-banner-container">
-<img class="auth-banner-image active" src="/images/login.jpg" alt="Khám phá hương vị Sài Gòn">
-<img class="auth-banner-image" src="/images/auth-seafood.jpg" alt="Hải sản nướng">
+<img class="auth-banner-image active" src="/images/editorial-dining.jpg" alt="Không gian nhà hàng với bàn ăn và ánh sáng ấm">
+<img class="auth-banner-image" src="/images/editorial-lobster.jpg" alt="Tôm hùm, tôm biển và sò điệp nướng">
 <img class="auth-banner-image" src="/images/auth-salmon.jpg" alt="Cá hồi áp chảo">
-<img class="auth-banner-image" src="/images/auth-clams.jpg" alt="Món ăn miền biển">
+<img class="auth-banner-image" src="/images/editorial-wine.jpg" alt="Vang rosé và bánh mì cà chua">
 <div class="auth-floating-card"><h2 class="auth-floating-title">Khám Phá Hương Vị, Theo Cách Của Bạn!</h2><p>Trải nghiệm tinh hoa ẩm thực Sài Gòn.</p></div>
 <div class="auth-banner-content"><h2>Khám Phá Thế Giới Ẩm Thực,<br>Vượt Mọi Giới Hạn!</h2></div></div></aside></section></main>
 <script src="/js/auth.js" defer></script>

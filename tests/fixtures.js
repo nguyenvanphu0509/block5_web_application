@@ -1,3 +1,4 @@
+import { compareDishes } from '../shared/presentation.js';
 import { demoDishes, demoChefs, demoIngredients, reviews } from '../api/data/demo.js';
 import { normalizeSearch } from '../api/src/lib/search.js';
 // Isolated test double for HTTP contracts. Real Prisma/PG tests are separate.
@@ -18,6 +19,7 @@ export function createFixture() {
   } : { ...row, dishes: storage.dish.filter(item => item.restaurantId === row.id) };
   const matches = (row, where) => Object.entries(where || {}).every(([key, value]) => {
     if (key === 'AND') return value.every(term => matches(row, term));
+    if (key === 'OR') return value.some(term => matches(row, term));
     if (key === 'restaurant') return !!row.restaurant && matches(row.restaurant, value.is || value);
     if (key === 'ingredients') return row.ingredients.some(link => matches(link, value.some));
     if (value && typeof value === 'object') {
@@ -98,9 +100,9 @@ export function createFixture() {
     const ingredient = text.match(/di\."ingredientId" = \$(\d+)/);
     if (ingredient) result = result.filter(row => row.ingredients.some(x => x.ingredientId === values[Number(ingredient[1]) - 1]));
     if (text.startsWith('SELECT count')) return [{ total: result.length }];
-    const sorting = text.match(/ORDER BY (.*?) LIMIT/)[1];
+    const sorting = text.match(/ORDER BY ([\s\S]*?) LIMIT/)[1];
     const order = sorting.includes('d.price') ? [{ price: sorting.includes('price DESC') ? 'desc' : 'asc' }, { id: 'asc' }] : sorting.startsWith('d.name') ? [{ name: 'asc' }, { id: 'asc' }] : [{ id: 'asc' }];
-    result.sort((a, b) => order.reduce((answer, spec) => answer || compare(a, b, spec), 0));
+    result.sort(sorting.includes('showcase:oysters-lemon') ? compareDishes : (a, b) => order.reduce((answer, spec) => answer || compare(a, b, spec), 0));
     const paging = text.match(/LIMIT \$(\d+) OFFSET \$(\d+)/);
     const take = values[Number(paging[1]) - 1], skip = values[Number(paging[2]) - 1];
     return result.slice(skip, skip + take).map(({ id }) => ({ id }));

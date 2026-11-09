@@ -59,7 +59,7 @@ try {
     saved.forEach(dish => console.log(`#${dish.id} — ${dish.name}`));
     console.log('Hoàn tất: 24 món đã có trong database. Món có cùng importKey được giữ nguyên.');
     console.log(`Xem thực đơn: ${process.env.SPA_ORIGIN || "http://localhost:5173"}/dishes`);
-    console.log('Nếu ảnh Plus/iStock bị chặn, xem scripts/IMPORT-USER-DISHES.md để cập nhật img-src.');
+    console.log('Nếu ảnh Plus/iStock bị chặn, xem README.md và shared/image-sources.js để cập nhật img-src.');
   }
 } catch (error) {
   if (error.message === 'INVALID_DATA' || error instanceof SyntaxError || error instanceof TypeError) {
