@@ -98,7 +98,7 @@ npm run test:e2e:production
 Integration PostgreSQL: đặt `TEST_DATABASE_URL` trong `api/.env`, chạy `npm run test:db:api` hoặc `npm run test:db`. Test tạo/dọn schema riêng, không reset public.
 
 - [API, validation, cấu hình và nghiệm thu Block 6](docs/BLOCK6.md)
-- [Bản SSR cũ](legacy/README.md)
+- [Block 8 — Restaurant SSR](#block-8--restaurant-ssr)
 - [Ghi chú fetch/AJAX và toàn bộ tài liệu trước khi đổi cấu trúc](legacy/README.block5.md)
 
 Các thư mục video/motion hiện có được giữ nguyên. Admin vẫn là demo, chưa thêm đăng nhập/phân quyền hoặc triển khai hosting.
@@ -159,3 +159,108 @@ Server paging và AJAX có thể dùng cùng nhau. Một cái quyết định n�
 
 Phạm vi phát biểu cho đúng code hiện tại: danh sách món và quản trị món dùng phân trang SQL. Riêng danh sách nhà hàng ở trang chủ hiện còn lấy dữ liệu rồi lọc/cắt trong JavaScript phía backend; phần đó chưa dùng LIMIT/OFFSET tại PostgreSQL.
 ##
+
+# Block 8 — Restaurant SSR
+
+Express/EJS chạy độc lập tại http://localhost:3001. SPA/API và các lệnh chạy mặc định vẫn giữ nguyên. SSR dùng chung dữ liệu danh mục với SPA nhưng có hệ thống xác thực, session và CSRF riêng.
+
+## Thiết lập và chạy
+
+Yêu cầu Node.js 24.x. Cài dependency một lần tại thư mục gốc:
+
+```sh
+npm ci
+```
+
+Tạo `legacy/.env` từ `legacy/.env.example` nếu chưa có, rồi điền cấu hình database, session, SMTP và reCAPTCHA. Không ghi đè `.env` hiện có và không commit secret.
+
+```sh
+npm --prefix legacy run auth:migrate
+npm --prefix legacy run auth:seed
+npm run dev:ssr
+```
+
+`auth:migrate` chỉ tạo schema `block8_auth` và các bảng xác thực; startup không tự migrate. Trước khi chạy `auth:seed`, đặt `SSR_SEED_EMAIL` và `SSR_SEED_PASSWORD` trong `legacy/.env`. Mật khẩu seed dài 15–128 ký tự.
+
+Các lệnh SSR:
+
+| Lệnh | Tác dụng |
+|---|---|
+| `npm run dev:ssr` | Chạy SSR ở chế độ watch tại cổng 3001 |
+| `npm run start:ssr` | Chạy SSR production |
+| `npm --prefix legacy run auth:migrate` | Tạo/cập nhật schema auth |
+| `npm --prefix legacy run auth:seed` | Tạo tài khoản active từ biến môi trường |
+| `npm --prefix legacy test` | Chạy toàn bộ test Legacy |
+| `npm --prefix legacy run test:flow` | Chạy flow HTTP/browser và mail giả lập |
+
+Production đặt `SSR_ORIGIN` là URL HTTPS thật và cấu hình `SSR_TRUST_PROXY_HOPS` đúng với reverse proxy. Cookie `Secure` chỉ hoạt động đúng khi Express nhận diện request HTTPS.
+
+## Cấu hình reCAPTCHA v2
+
+Google reCAPTCHA v2 checkbox dùng ba biến trong `legacy/.env`:
+
+```env
+RECAPTCHA_SITE_KEY=your-public-site-key
+RECAPTCHA_SECRET_KEY=your-server-secret
+RECAPTCHA_ALLOWED_HOSTNAMES=localhost,127.0.0.1
+```
+
+Site key chỉ được render ở frontend. Secret key chỉ được dùng ở backend; server gửi token tới Google `siteverify`, kiểm tra `success` và hostname, đồng thời fail-closed khi token thiếu hoặc Google không phản hồi. Sau khi thay đổi `.env`, phải restart SSR.
+
+Nếu widget không hiện, kiểm tra `RECAPTCHA_SITE_KEY`, Network request tới `https://www.google.com/recaptcha/api.js`, Console và CSP trong `legacy/src/middleware/security.js`. CSP phải cho phép `www.google.com/recaptcha`, `www.gstatic.com/recaptcha` và iframe reCAPTCHA.
+
+## Phạm vi xác thực
+
+- Email được trim và chuyển lowercase; password dài 15–128 ký tự và không tự trim.
+- Đăng ký luôn yêu cầu CAPTCHA hợp lệ, tạo user pending và gửi OTP 6 chữ số có hạn 10 phút.
+- OTP lưu dạng HMAC, dùng một lần; tối đa 5 lần sai, khóa 15 phút và resend cách nhau ít nhất 60 giây. Kích hoạt thành công không tự đăng nhập.
+- Email active đăng ký lại không ghi đè password, không tạo user trùng và không gửi OTP kích hoạt mới.
+- Login dùng `crypto.scrypt`; lỗi đăng nhập không tiết lộ tài khoản có tồn tại hay không.
+- Rate limit theo email và IP; CAPTCHA được yêu cầu sau ngưỡng sai và không xóa bộ đếm.
+- Session lưu PostgreSQL qua `connect-pg-simple`, cookie tên `sid`, `HttpOnly`, `SameSite=Lax`, `Secure` khi HTTPS, hết hạn 8 giờ hoặc 7 ngày khi chọn ghi nhớ.
+- Login gọi regenerate session để chống session fixation. Logout hủy session phía server và xóa cookie.
+- Reset password dùng token ngẫu nhiên 32 byte, lưu SHA-256, hạn 15 phút và dùng một lần; reset thành công thu hồi toàn bộ session.
+- CSRF token áp dụng cho mọi POST/PATCH/DELETE, kể cả multipart; kiểm tra Origin bổ sung.
+- Toàn bộ route CRUD được bảo vệ ở server. Request chưa đăng nhập được chuyển `303 /login` trước khi upload hoặc ghi dữ liệu. Block 8 chưa phân quyền CRUD theo role.
+
+## Luồng chính
+
+```mermaid
+sequenceDiagram
+  participant B as Browser
+  participant S as SSR
+  participant D as PostgreSQL
+  participant M as SMTP
+  B->>S: Register + CSRF + reCAPTCHA
+  S->>D: Tạo pending user + OTP hash
+  S->>M: Gửi OTP
+  B->>S: Activate OTP
+  S->>D: Consume OTP; active
+  B->>S: Login
+  S->>D: Kiểm tra giới hạn và tạo session
+  S-->>B: Set-Cookie sid; 303 /dishes
+  B->>S: CRUD + cookie + CSRF khi ghi
+  B->>S: Forgot/reset password
+  S->>D: Consume reset token; đổi password; revoke sessions
+```
+
+## Kiểm thử và bằng chứng nộp
+
+```sh
+npm --prefix legacy test
+npm --prefix legacy run test:flow
+npm test
+npm run build
+```
+
+Test flow dùng database/email giả lập; kiểm thử SMTP thật cần thực hiện riêng với hộp thư được phép. Ma trận nghiệm thu gồm đăng ký pending, OTP hết hạn/dùng lại/resend, CAPTCHA sai hoặc hostname sai, brute-force 429, login tạo cookie, restart giữ session, logout/reset thu hồi session, CRUD không session bị chuyển login và CSRF sai bị từ chối.
+
+Khi chụp bằng chứng:
+
+1. Network → `POST /login` → Response Headers → `Set-Cookie`.
+2. Application → Cookies → kiểm tra `sid`, `HttpOnly`, `SameSite=Lax`, `Path=/` và `Secure` nếu HTTPS.
+3. Request tiếp theo tới `/dishes` có cookie.
+4. Database session/auth record và email OTP/reset.
+5. Brute-force trả 429, CRUD anonymous trả 303 `/login`, logout và reset làm sid cũ vô hiệu.
+
+Che giá trị cookie, session, password, OTP, reset token và mọi secret trong ảnh hoặc log. Không đưa secret reCAPTCHA/SMTP vào chat, commit hoặc tài liệu nộp.

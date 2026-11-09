@@ -6,6 +6,40 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  role         String   @default("viewer")
+  status       String   @default("active")
+  tokenVersion Int      @default(0)
+  failedLoginAttempts Int @default(0)
+  captchaRequired Boolean @default(false)
+  chefId       Int?
+  chef         Chef?    @relation(fields: [chefId], references: [id], onDelete: SetNull)
+  accountTokens AccountToken[]
+  createdAt    DateTime @default(now())
+
+  @@map("users")
+  @@index([chefId])
+}
+
+model AccountToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  purpose   String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+  @@map("account_tokens")
+}
+
 model Dish {
   id          Int      @id @default(autoincrement())
   name        String
@@ -30,6 +64,7 @@ model Dish {
   restaurant Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
   chefId Int?
   chef Chef? @relation(fields: [chefId], references: [id], onDelete: SetNull)
+  status String @default("published")
   ingredients DishIngredient[]
   createdAt   DateTime @default(now())
 
@@ -84,6 +119,7 @@ model Chef {
   isDemo Boolean @default(false)
   catalogKey String? @unique
   dishes Dish[]
+  users User[]
   createdAt DateTime @default(now())
 
   @@map("chefs")

@@ -1,4 +1,50 @@
 main:focus { outline: none; }
+.header-auth-group {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.header-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.header-user-name {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--forest);
+  font-size: 12px;
+}
+.header-logout-btn,
+.header-login-link {
+  color: var(--forest);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.header-logout-btn {
+  min-height: 42px;
+  padding: 11px 22px;
+  border: 1px solid var(--forest);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--forest);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.header-logout-btn:hover {
+  color: #fff;
+  background: var(--forest);
+  border-color: var(--forest);
+  box-shadow: 0 8px 18px #294c3d14;
+}
+.header-login-link:hover {
+  color: var(--forest);
+}
 .editor-fields { border:0; padding:0; margin:0; min-width:0; }
 .form-card h1 { font-size:42px; }
 .field input[type=radio] { width:auto; }

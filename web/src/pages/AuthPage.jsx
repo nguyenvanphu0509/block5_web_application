@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { useAuth } from '../AuthContext.jsx';
+import { api } from '../api.js';
 import './auth.css';
 
 const SLIDES = [
@@ -40,14 +42,18 @@ export function AuthPage({ initialMode = 'login' }) {
   const { login, register } = useAuth();
 
   const [mode, setMode] = useState(initialMode); // 'login' or 'signup'
-  const [username, setUsername] = useState('eli_trekker');
-  const [email, setEmail] = useState('elitrecker@gmail.com');
-  const [password, setPassword] = useState('••••••••');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [captchaRequired, setCaptchaRequired] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaSiteKey, setCaptchaSiteKey] = useState('');
 
   // Tự động chuyển ảnh mỗi 5 giây
   const [slideIndex, setSlideIndex] = useState(0);
@@ -59,6 +65,10 @@ export function AuthPage({ initialMode = 'login' }) {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    api('/config').then(result => setCaptchaSiteKey(result.data.recaptchaSiteKey || '')).catch(() => {});
+  }, []);
+
   const redirectPath = searchParams.get('redirect') || '/dishes';
 
   const handleSubmit = async (e) => {
@@ -68,26 +78,31 @@ export function AuthPage({ initialMode = 'login' }) {
     setPending(true);
 
     try {
-      const actualEmail = (email === 'example@email.com' || !email) ? 'elitrecker@gmail.com' : email;
-      const actualPassword = password === '••••••••' ? 'password123' : password;
-
       if (mode === 'login') {
-        await login({ email: actualEmail, password: actualPassword, remember: rememberMe });
+        await login({ email, password, captchaToken, remember: rememberMe });
         setSuccessMsg('Đăng nhập thành công! Đang chuyển hướng...');
       } else {
-        await register({
-          username: username || 'eli_trekker',
-          email: actualEmail,
-          password: actualPassword,
+        if (password !== confirmPassword) {
+          setError('Mật khẩu xác nhận không khớp.');
+          setPending(false);
+          return;
+        }
+        const registration = await register({
+          username,
+          email,
+          password,
+          captchaToken,
           remember: rememberMe,
         });
-        setSuccessMsg('Đăng ký thành công! Đang chuyển đến thực đơn món ăn...');
+        navigate(`/activate?email=${encodeURIComponent(email)}`, { state: { otp: registration.otp } });
+        return;
       }
 
       setTimeout(() => {
         navigate(redirectPath, { replace: true });
       }, 700);
     } catch (err) {
+      if (err.code === 'CAPTCHA_REQUIRED') setCaptchaRequired(true);
       setError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
       setPending(false);
     }
@@ -98,12 +113,14 @@ export function AuthPage({ initialMode = 'login' }) {
     setError('');
     setSuccessMsg('');
     if (newMode === 'login') {
-      setEmail('elitrecker@gmail.com');
-      setPassword('••••••••');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
     } else {
-      setUsername('eli_trekker');
-      setEmail('elitrecker@gmail.com');
-      setPassword('••••••••');
+      setUsername('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
     }
   };
 
@@ -206,6 +223,11 @@ export function AuthPage({ initialMode = 'login' }) {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
+                {captchaSiteKey && captchaRequired && (
+                  <div className="auth-captcha">
+                    <ReCAPTCHA sitekey={captchaSiteKey} onChange={setCaptchaToken} onExpired={() => setCaptchaToken('')} />
+                  </div>
+                )}
 
                 <div className="auth-field bordered">
                   <label htmlFor="login-pass">Mật khẩu</label>
@@ -238,16 +260,12 @@ export function AuthPage({ initialMode = 'login' }) {
                     </button>
                   </div>
                   <div className="auth-forgot-row">
-                    <a
-                      href="#forgot"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert('Tài khoản demo: elitrecker@gmail.com / mật khẩu: password123');
-                      }}
+                    <Link
+                      to="/forgot-password"
                       className="auth-forgot-link"
                     >
                       Quên mật khẩu?
-                    </a>
+                    </Link>
                   </div>
                 </div>
 
@@ -339,6 +357,11 @@ export function AuthPage({ initialMode = 'login' }) {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
+                {captchaSiteKey && (
+                  <div className="auth-captcha">
+                    <ReCAPTCHA sitekey={captchaSiteKey} onChange={setCaptchaToken} onExpired={() => setCaptchaToken('')} />
+                  </div>
+                )}
 
                 <div className="auth-field bordered">
                   <label htmlFor="signup-password">Mật khẩu</label>
@@ -356,6 +379,38 @@ export function AuthPage({ initialMode = 'login' }) {
                       className="auth-password-toggle"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiển thị mật khẩu'}
+                    >
+                      {showPassword ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="auth-field bordered">
+                  <label htmlFor="signup-confirm-password">Nhập lại mật khẩu</label>
+                  <div className="auth-password-wrapper">
+                    <input
+                      id="signup-confirm-password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="auth-password-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Ẩn mật khẩu xác nhận' : 'Hiển thị mật khẩu xác nhận'}
                     >
                       {showPassword ? (
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

@@ -77,6 +77,52 @@ API chuẩn hóa dữ liệu nhà hàng và tên các món đang liên kết khi
 
 ## Ghi dữ liệu và validation
 
+## Xác thực JWT cho Bài 2
+
+API CSR dùng JWT Bearer, không dùng session/cookie phiên:
+
+- Đặt `JWT_SECRET` và tùy chọn `JWT_EXPIRES_IN` trong `api/.env`; không đưa các giá trị này vào `web` hoặc Git.
+- `POST /api/auth/register` luôn tạo role `viewer`; `POST /api/auth/login` trả `accessToken` sau khi xác thực mật khẩu.
+- Gửi token bằng `Authorization: Bearer <accessToken>`. `401` là thiếu/sai/hết hạn token; `403` là đã xác thực nhưng thiếu quyền.
+- `GET /api/dishes` và `GET /api/dishes/:id` vẫn công khai, giữ nguyên tìm kiếm/phân trang. Các thao tác ghi yêu cầu role phù hợp.
+- SPA lưu token trong `sessionStorage` để giới hạn thời gian tồn tại theo tab. Đây không phải biện pháp chống XSS; không lưu secret backend trong bundle.
+- MFA không nằm trong phạm vi triển khai CSR này theo quyết định của bài thực hành.
+- Quên mật khẩu dùng OTP 6 số gửi qua SMTP Gmail. Cấu hình `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_SECURE=true`, `SMTP_USER`, `SMTP_PASSWORD` bằng Gmail App Password và tùy chọn `SMTP_FROM` trong `api/.env`; không dùng mật khẩu Gmail chính.
+- OTP chỉ lưu dưới dạng hash trong `account_tokens`, hết hạn sau 15 phút và chỉ dùng một lần. `AUTH_EXPOSE_DEV_TOKENS=true` chỉ dành cho development khi chưa cấu hình SMTP; production phải để `false`.
+- Đăng ký tạo tài khoản ở trạng thái `pending`, gửi OTP kích hoạt qua Gmail và chỉ chuyển sang `active` sau `POST /api/auth/activate`; tài khoản pending không nhận JWT.
+- `POST /api/auth/resend-activation` gửi lại OTP cho tài khoản pending; phản hồi dùng thông điệp chung để không làm lộ email có tồn tại hay không.
+- CAPTCHA reCAPTCHA V2 chỉ được yêu cầu sau số lần đăng nhập sai liên tiếp theo `RECAPTCHA_LOGIN_THRESHOLD` và chỉ kiểm tra trên tài khoản tồn tại. CAPTCHA token được xác minh tại Google từ backend, không tin kết quả do client tự gửi.
+- Đăng ký bắt buộc hoàn thành reCAPTCHA V2 trước khi backend băm mật khẩu và tạo tài khoản.
+
+### Kiểm tra CORS khi chạy local
+
+API phải có origin chính xác của Vite trong `api/.env`:
+
+```dotenv
+SPA_ORIGIN=http://localhost:5173
+```
+
+Sau khi đổi biến môi trường, khởi động lại API. Preflight phải trả `204` và có:
+
+```text
+Access-Control-Allow-Origin: http://localhost:5173
+Access-Control-Allow-Headers: Content-Type, Authorization
+```
+
+Có thể kiểm tra bằng PowerShell:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing -Method Options `
+  http://localhost:3000/api/config `
+  -Headers @{
+    Origin = 'http://localhost:5173'
+    'Access-Control-Request-Method' = 'GET'
+    'Access-Control-Request-Headers' = 'authorization'
+  }
+```
+
+Nếu frontend chạy bằng `http://127.0.0.1:5173`, phải đổi `SPA_ORIGIN` sang đúng origin đó; `localhost` và `127.0.0.1` là hai origin khác nhau. Không dùng `*` vì request có `Authorization`.
+
 JSON là định dạng chính. Ví dụ:
 
 ```sh

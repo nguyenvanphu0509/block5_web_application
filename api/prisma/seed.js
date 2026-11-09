@@ -1,5 +1,6 @@
 import { pathToFileURL } from 'node:url';
 import { createDatabaseClient } from '../src/db/client.js';
+import { hashPassword } from '../src/auth.js';
 
 // Snapshot read from Supabase on 2026-10-13. No credentials or system schemas.
 // Run against a NEW database after db:push. IDs preserve all existing relations.
@@ -5118,7 +5119,7 @@ function toPrismaData(row) {
 }
 
 export async function seedDatabase(db) {
-  return db.$transaction(async tx => {
+  const counts = await db.$transaction(async tx => {
     // Check BEFORE writing: never attach snapshot relations to unrelated existing IDs.
     for (const model of modelOrder) {
       const key = model === 'restaurantImportArchive' ? 'legacyId' : 'id';
@@ -5155,18 +5156,47 @@ export async function seedDatabase(db) {
     }
     return Object.fromEntries(Object.entries(seedData).map(([model, rows]) => [model, rows.length]));
   }, { timeout: 120000 });
+  const userCount = await seedUsers(db);
+  if (db.user && userCount) counts.user = userCount;
+  return counts;
+}
+
+async function seedUsers(db) {
+  if (!db.user) return 0;
+  const users = [
+    ['admin@example.test', 'seed_admin', process.env.SEED_ADMIN_PASSWORD, 'admin', null],
+    ['editor@example.test', 'seed_editor', process.env.SEED_EDITOR_PASSWORD, 'editor', null],
+    ['chef@example.test', 'seed_chef', process.env.SEED_CHEF_PASSWORD, 'chef', 1],
+    ['viewer@example.test', 'seed_viewer', process.env.SEED_VIEWER_PASSWORD, 'viewer', null],
+  ].filter(([, , password]) => password);
+  for (const [email, username, password, role, chefId] of users) {
+    await db.user.upsert({
+      where: { email },
+      update: { username, role, status: 'active', chefId, passwordHash: await hashPassword(password) },
+      create: { email, username, role, status: 'active', chefId, passwordHash: await hashPassword(password) },
+    });
+  }
+  return users.length;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   let db;
   try {
     db = createDatabaseClient();
-    const counts = await seedDatabase(db);
+    const counts = process.env.SEED_USERS_ONLY === 'true'
+      ? { user: await seedUsers(db) }
+      : await seedDatabase(db);
     console.log('Seed đầy đủ hoàn tất:', counts);
     console.log('Bản ghi đã có cùng ID được giữ nguyên. Không xóa dữ liệu.');
-  } catch {
-    // Do not print connection strings or database errors containing private values.
+  } catch (error) {
+    // Keep connection strings and other private values out of seed output.
     console.error('Seed thất bại. Dùng database mới, kiểm tra DATABASE_URL và chạy db:generate, db:push trước. Nếu có dữ liệu trùng ID/khóa, seed sẽ dừng để tránh gán sai quan hệ.');
+    if (error?.code || error?.message) {
+      const detail = String(error.message || 'Lỗi không xác định')
+        .replace(/postgres(?:ql)?:\/\/\S+/gi, '[database-url]')
+        .replace(/password=[^\s&]+/gi, 'password=[redacted]');
+      console.error(`Chi tiết an toàn: ${error.code ? `${error.code} - ` : ''}${detail}`);
+    }
     process.exitCode = 1;
   } finally { await db?.$disconnect(); }
 }

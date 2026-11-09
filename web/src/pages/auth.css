@@ -266,6 +266,93 @@
   text-decoration: underline;
 }
 
+.auth-label {
+  display: block;
+  margin: 0 0 8px;
+  color: #3f3f46;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.auth-card-single {
+  grid-template-columns: minmax(0, 520px);
+  justify-content: center;
+  min-height: auto;
+}
+
+.auth-captcha {
+  margin: 0 0 20px;
+}
+
+.auth-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+}
+
+.auth-reset-form {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e8ece9;
+}
+
+.auth-back-link {
+  display: inline-block;
+  margin-top: 20px;
+  color: var(--forest, #294c3d);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-back-link:hover {
+  text-decoration: underline;
+}
+
+.auth-resend-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 20px;
+  flex-wrap: wrap;
+}
+
+.auth-resend-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--forest, #294c3d);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-resend-link:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.auth-resend-link:disabled {
+  color: #8a948e;
+  cursor: not-allowed;
+}
+
+.auth-resend-countdown {
+  color: var(--forest, #294c3d);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.auth-forgot-banner .auth-banner-image {
+  opacity: 1;
+  transform: none;
+}
+
+.auth-forgot-banner .auth-floating-card {
+  max-width: 220px;
+}
+
 .auth-checkbox-row {
   margin: 4px 0 20px;
 }
