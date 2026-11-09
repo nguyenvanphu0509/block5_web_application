@@ -108,6 +108,15 @@ export function AuthPage({ initialMode = 'login' }) {
         signupCaptcha.current?.reset();
         setCaptchaToken('');
       }
+      const activationEmail = err.fields?.email || (email.includes('@') ? email.trim() : '');
+      if (mode === 'login' && (err.code === 'ACCOUNT_NOT_ACTIVATED' || /chưa được kích hoạt/i.test(err.message || '')) && activationEmail) {
+        setPending(false);
+        navigate(`/activate?email=${encodeURIComponent(activationEmail)}`, {
+          replace: true,
+          state: { message: 'Tài khoản chưa được kích hoạt. Bạn có thể gửi lại mã OTP tại đây.' },
+        });
+        return;
+      }
       setError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
       setPending(false);
     }

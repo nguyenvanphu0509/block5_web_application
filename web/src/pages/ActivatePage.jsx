@@ -10,7 +10,7 @@ export function ActivatePage() {
   const [email, setEmail] = useState(params.get('email') || '');
   const [otp, setOtp] = useState(location.state?.otp || '');
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(location.state?.message || '');
   const [pending, setPending] = useState(false);
   const [resending, setResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(60);

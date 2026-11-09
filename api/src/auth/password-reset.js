@@ -62,7 +62,13 @@ export function registerPasswordResetRoutes(app, { db, origin, mailer, logger })
     // Account lookup and delivery start after the public response.
     const task = new Promise(resolve => setImmediate(resolve))
       .then(() => sendResetLink(email))
-      .catch(() => logger.error('Password reset email task failed'));
+      .catch(error => {
+        logger.error('Password reset email task failed', {
+          code: error?.code || 'UNKNOWN',
+          responseCode: Number.isInteger(error?.responseCode) ? error.responseCode : undefined,
+          message: error?.message || 'Unknown password reset error',
+        });
+      });
     pendingMail.add(task);
     void task.then(() => pendingMail.delete(task));
     return res.json({ ok: true, data: { message: 'Nếu email đã đăng ký và được kích hoạt, hãy kiểm tra hộp thư đến hoặc thư rác để mở liên kết đặt lại mật khẩu.' } });

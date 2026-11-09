@@ -88,9 +88,10 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
     res.status(201).json({ ok: true, data });
   });
   app.post('/api/auth/login', async (req, res) => {
-    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const identity = typeof req.body?.email === 'string' ? req.body.email.trim() : '';
+    const email = identity.toLowerCase();
     const password = req.body?.password;
-    const user = await db.user.findUnique({ where: { email } });
+    const user = await db.user.findFirst({ where: { OR: [{ email }, { username: identity }] } });
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
       if (user?.status === 'active') {
         const failedLoginAttempts = user.failedLoginAttempts + 1;
@@ -100,7 +101,7 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
       }
       return res.json({ ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email hoặc mật khẩu không đúng.' } });
     }
-    if (user.status === 'pending') return res.json({ ok: false, error: { code: 'ACCOUNT_NOT_ACTIVATED', message: 'Tài khoản chưa được kích hoạt.' } });
+    if (user.status === 'pending') return res.json({ ok: false, error: { code: 'ACCOUNT_NOT_ACTIVATED', message: 'Tài khoản chưa được kích hoạt.', fields: { email: user.email } } });
     if (user.status !== 'active') return res.json({ ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email hoặc mật khẩu không đúng.' } });
     if (user.captchaRequired && !(await verifyCaptcha(req.body?.captchaToken))) return res.json({ ok: false, error: { code: 'CAPTCHA_REQUIRED', message: 'Vui lòng xác minh CAPTCHA.' } });
     const accessToken = createJwt({ sub: String(user.id), tokenVersion: user.tokenVersion }, auth);
