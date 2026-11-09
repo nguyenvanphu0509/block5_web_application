@@ -10,8 +10,22 @@
     });
   }
   for (const form of document.querySelectorAll('[data-auth-form]')) {
+    const password = form.querySelector('[name=password]');
+    const confirmPassword = form.querySelector('[name=confirmPassword]');
+    const validatePasswordMatch = () => {
+      if (confirmPassword) {
+        confirmPassword.setCustomValidity(confirmPassword.value && confirmPassword.value !== password.value
+          ? 'Mật khẩu nhập lại không khớp. Vui lòng kiểm tra lại.' : '');
+      }
+    };
+    if (confirmPassword) {
+      password.addEventListener('input', validatePasswordMatch);
+      confirmPassword.addEventListener('input', validatePasswordMatch);
+    }
     form.addEventListener('submit', event => {
       if (form.dataset.submitting) { event.preventDefault(); return; }
+      validatePasswordMatch();
+      if (!form.reportValidity()) { event.preventDefault(); return; }
       form.dataset.submitting = 'true';
       const button = form.querySelector('[type=submit]');
       button.disabled = true;

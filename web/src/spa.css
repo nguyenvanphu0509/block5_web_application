@@ -118,3 +118,20 @@ button:disabled { opacity: .55; cursor: wait; }
   .catalog-method { min-height:56px; }
 }
 @media(prefers-reduced-motion:reduce) { .catalog-advanced summary > svg:last-child { transition:none; } }
+
+.header-auth-group { display: flex; align-items: center; gap: 12px; }
+.account-menu { position: relative; flex-shrink: 0; }
+.account-avatar, .account-panel-avatar { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #203e36; color: #fff; font: 600 18px/1 Inter, sans-serif; }
+.account-avatar { border: 1px solid #203e36; padding: 0; cursor: pointer; box-shadow: 0 3px 12px #203e3615; transition: background 160ms, box-shadow 160ms; }
+.account-avatar:hover, .account-avatar[aria-expanded="true"] { background: #315c4d; box-shadow: 0 0 0 4px #203e3610; }
+.account-avatar:focus-visible, .account-logout:focus-visible { outline: 2px solid #6b917d; outline-offset: 4px; }
+.account-panel { position: absolute; top: calc(100% + 14px); right: 0; z-index: 100; width: min(300px, calc(100vw - 48px)); box-sizing: border-box; padding: 20px; border: 1px solid #dce5de; border-radius: 18px; background: #fff; color: #203e36; box-shadow: 0 16px 44px #152e2526; text-align: left; }
+.account-panel-heading { display: flex; align-items: center; gap: 12px; }
+.account-panel-heading > div { min-width: 0; }
+.account-panel-avatar { width: 40px; height: 40px; font-size: 16px; flex-shrink: 0; background: #edf3ee; color: #203e36; }
+.account-panel .account-name { margin: 0 0 4px; font-size: 14px; line-height: 1.4; font-weight: 600; overflow-wrap: anywhere; }
+.account-role { color: #728077; font-size: 11px; }
+.account-panel .account-email { margin: 16px 0; color: #65746c; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.account-logout { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; border: 1px solid #e4e9e4; border-radius: 10px; padding: 11px 14px; background: #f5f8f5; color: #203e36; font: 500 13px/1.4 Inter, sans-serif; cursor: pointer; }
+.account-logout:hover { background: #eaf0ea; }
+@media (max-width: 800px) { .header-auth-group > .button { display: none; } }

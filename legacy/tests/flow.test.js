@@ -21,8 +21,16 @@ test('registration → dedicated OTP URL → login; no environment files or real
  const browser=request.agent(app);
  const csrfFrom=res=>res.text.match(/name="_csrf" value="([^"]+)"/)[1];
  const register=await browser.get('/register').expect(200);
+ assert.match(register.text,/name="confirmPassword"/);
  const csrf=csrfFrom(register);
- const payload={_csrf:csrf,email:'New@Example.com',password:'valid-long-password-123'};
+ const payload={_csrf:csrf,email:'New@Example.com',password:'valid-long-password-123',confirmPassword:'valid-long-password-123'};
+ for(const confirmPassword of [undefined,'','different-long-password',payload.password+' ']) {
+   const invalid=await browser.post('/register').type('form').send({...payload,confirmPassword}).expect(400);
+   assert.match(invalid.text,/Mật khẩu nhập lại không khớp/);
+   assert(!invalid.text.includes(payload.password),'passwords must not be echoed in the error response');
+ }
+ assert.equal((await pool.query('SELECT * FROM block8_auth.users')).rows.length,0);
+ assert.equal(messages.length,0,'invalid confirmation must not create an account or send OTP');
  await browser.post('/register').type('form').send(payload).expect(303).expect('Location','/activate');
  assert.equal(messages.length,1);
  assert.equal((await pool.query('SELECT * FROM block8_auth.users')).rows.length,1);
@@ -45,7 +53,7 @@ test('registration → dedicated OTP URL → login; no environment files or real
  await browser.get('/admin').expect(302).expect('Location','/admin/dishes');
  const duplicateRegister=await browser.get('/register').expect(200);
  const duplicateCsrf=csrfFrom(duplicateRegister);
- const duplicate=await browser.post('/register').type('form').send({_csrf:duplicateCsrf,email:'NEW@example.com',password:payload.password}).expect(400);
+ const duplicate=await browser.post('/register').type('form').send({...payload,_csrf:duplicateCsrf,email:'NEW@example.com'}).expect(400);
  assert.match(duplicate.text,/Email này đã được đăng ký/);
  assert.equal(messages.length,1,'active accounts must not receive another activation email');
  await pool.end();
@@ -72,6 +80,25 @@ test('browser: displayed CAPTCHA, double-click protection, OTP page and login re
    await page.waitForFunction(()=>!document.querySelector('[type=submit]').disabled);
    await page.locator('[name=email]').fill('browser@example.com');
    await page.locator('[name=password]').fill('valid-browser-password-123');
+   const confirmation=page.getByLabel('Nhập lại mật khẩu',{exact:true});
+   assert(await confirmation.isVisible());
+   assert(await confirmation.evaluate(input=>input.required&&input.validity.valueMissing));
+   await page.locator('[type=submit]').first().click();
+   assert.equal(registrations,0,'empty confirmation must block submission');
+   await confirmation.fill('different-browser-password');
+   assert.match(await confirmation.evaluate(input=>input.validationMessage),/Mật khẩu nhập lại không khớp/);
+   await page.locator('[type=submit]').first().click();
+   assert.equal(registrations,0,'mismatched confirmation must block submission');
+   assert(!await page.locator('[type=submit]').first().isDisabled());
+   await confirmation.fill('valid-browser-password-123');
+   await page.locator('[name=password]').fill('changed-browser-password-123');
+   assert(await confirmation.evaluate(input=>input.validity.customError),'editing the password must recheck confirmation');
+   await page.locator('[name=password]').fill('valid-browser-password-123');
+   assert(await confirmation.evaluate(input=>input.validity.valid));
+   const toggle=page.locator('[aria-controls="auth-confirm-password"]');
+   await toggle.click();assert.equal(await confirmation.getAttribute('type'),'text');
+   assert.equal(await page.locator('[name=password]').getAttribute('type'),'password');
+   await toggle.click();assert.equal(await confirmation.getAttribute('type'),'password');
    const submitted=page.waitForResponse(response=>response.request().method()==='POST'&&new URL(response.url()).pathname==='/register');
    await page.locator('[type=submit]').first().evaluate(button=>{button.click();button.click();});
    const registration=await submitted;assert.equal(registration.status(),303);

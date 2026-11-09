@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import request from 'supertest';
 import { isolatedDatabase } from './block7-db.js';
-import { createApi } from '../api/src/app.js';
+import { createApi } from './auth-fixture.js';
 import { seedBlock7 } from '../api/scripts/seed-block7.js';
 import { dishQueries, queryState } from '../api/src/catalog.js';
 

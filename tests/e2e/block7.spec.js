@@ -1,8 +1,9 @@
+import { createAdminSession } from '../auth-fixture.js';
 import { test, expect } from '@playwright/test';
 import { mkdir, writeFile, copyFile } from 'node:fs/promises';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('viet_cuisine_user', JSON.stringify({ id: 'e2e', username: 'E2E', email: 'e2e@example.test' })));
+  await page.addInitScript(session => localStorage.setItem('viet_cuisine_session', JSON.stringify(session)), createAdminSession());
   await page.route('https://**', route => route.abort());
   const responses = []; page.__evidence = responses;
   page.on('response', async res => {

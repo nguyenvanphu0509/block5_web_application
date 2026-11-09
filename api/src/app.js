@@ -16,7 +16,7 @@ const includeDish = { restaurant: true, chef: true, ingredients: { include: { in
 const success = (res, data, meta) => res.json({ ok: true, data, ...(data?.items && { error: null }), ...(meta && { meta }) });
 const serialize = (record, resource) => resource === 'restaurants' ? { ...record, photo: restaurantPhoto(record) } : record;
 
-export function createApi({ db, preview = false, origin = 'http://localhost:5173', logger = console, storage = { upload: uploadImage, remove: deleteUploadedImage } } = {}) {
+export function createApi({ db, preview = false, origin = 'http://localhost:5173', logger = console, auth, storage = { upload: uploadImage, remove: deleteUploadedImage } } = {}) {
   const allowed = new URL(origin).origin;
   const app = express();
   app.disable('x-powered-by');
@@ -29,18 +29,24 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
       if (req.headers.origin !== allowed) return next(new TechnicalError(403, 'Origin không được phép.'));
       res.set('Access-Control-Allow-Origin', allowed);
     }
+    res.set('Access-Control-Expose-Headers', 'Retry-After, WWW-Authenticate');
     if (req.method === 'OPTIONS') {
       const method = req.headers['access-control-request-method'];
       const headers = String(req.headers['access-control-request-headers'] || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
-      if ((method && !['GET', 'POST', 'PATCH', 'DELETE', 'HEAD'].includes(method)) || headers.some(x => x !== 'content-type')) return next(new TechnicalError(403, 'Preflight không được phép.'));
+      if ((method && !['GET', 'POST', 'PATCH', 'DELETE', 'HEAD'].includes(method)) || headers.some(x => !['content-type', 'authorization'].includes(x))) return next(new TechnicalError(403, 'Preflight không được phép.'));
       res.set('Access-Control-Allow-Methods', 'GET, HEAD, POST, PATCH, DELETE, OPTIONS');
-      res.set('Access-Control-Allow-Headers', 'Content-Type');
+      res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       return res.status(204).end();
     }
     next();
   });
   app.use('/images', express.static(fileURLToPath(new URL('../../web/public/images/', import.meta.url))));
   app.use(express.json({ limit: '32kb' }));
+  if (auth?.router) app.use('/api/auth', auth.router);
+  const authUnavailable = (req, res) => res.status(503).json({ ok: false, error: { code: 'AUTH_UNAVAILABLE', message: 'Dịch vụ xác thực chưa sẵn sàng.' } });
+  const requireAuth = auth?.requireAuth || authUnavailable;
+  const writePermission = auth?.requireRole?.('admin', 'editor') || authUnavailable;
+  const deletePermission = auth?.requireRole?.('admin') || authUnavailable;
   app.get('/api/config', (req, res) => success(res, { preview, imageChoices, imageOrigins: imageSources.split(' ').filter(x => x.startsWith('https:')), sorts: Object.fromEntries(Object.entries(sorts).map(([key, x]) => [key, x.label])) }));
   app.get('/api/home', async (req, res) => {
     const data = await homeData(db, req.query);
@@ -72,11 +78,11 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
       if (!record) throw new BusinessError('NOT_FOUND', 'Bản ghi không tồn tại hoặc đã bị xóa.');
       return record;
     };
-    app.get(base, async (req, res) => {
+    app.get(base, requireAuth, async (req, res) => {
       const { data, meta } = await listRecords(db, resource, model, req.query);
       success(res, resource === 'dishes' ? data : data.map(x => serialize(x, resource)), { ...meta, preview });
     });
-    app.get(`${base}/:id`, async (req, res) => success(res, serialize(await find(idValue(req.params.id)), resource), { preview }));
+    app.get(`${base}/:id`, requireAuth, async (req, res) => success(res, serialize(await find(idValue(req.params.id)), resource), { preview }));
     const write = partial => async (req, res) => {
       const id = partial ? idValue(req.params.id) : null;
       if (partial) await find(id);
@@ -123,9 +129,9 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
         throw error;
       }
     };
-    app.post(base, writable, parseWrite, write(false));
-    app.patch(`${base}/:id`, writable, parseWrite, write(true));
-    app.delete(`${base}/:id`, writable, async (req, res) => {
+    app.post(base, requireAuth, writePermission, writable, parseWrite, write(false));
+    app.patch(`${base}/:id`, requireAuth, writePermission, writable, parseWrite, write(true));
+    app.delete(`${base}/:id`, requireAuth, deletePermission, writable, async (req, res) => {
       const id = idValue(req.params.id);
       await find(id);
       await model.delete({ where: { id } });

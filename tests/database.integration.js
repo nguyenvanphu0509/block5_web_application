@@ -8,7 +8,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import request from 'supertest';
 import { migrateBlock7 } from '../api/scripts/migrate-block7.js';
-import { createApi } from '../api/src/app.js';
+import { createApi } from './auth-fixture.js';
 
 test('Block6 API on PostgreSQL: CRUD, filters, relations, transaction rollback and delete policies', { skip: !process.env.TEST_DATABASE_URL, timeout: 120000 }, async () => {
   const schema = `block6_test_${randomUUID().replaceAll('-', '')}`;

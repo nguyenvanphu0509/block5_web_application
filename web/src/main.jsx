@@ -9,15 +9,16 @@ import { Home } from './pages/Home.jsx';
 import { Catalog, PublicDetail } from './pages/Catalog.jsx';
 import { AdminList, AdminRecord } from './pages/Admin.jsx';
 import { RecordForm } from './pages/RecordForm.jsx';
+import { AccountMenu } from './AccountMenu.jsx';
 import './spa.css';
 
 function App() {
   const location = useLocation(), root = useRef(null);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
   const config = useLoad('config', signal => api('/config', { signal }));
   useMotion(root, location.pathname);
 
-  const isAuthPage = ['/login', '/signup'].includes(location.pathname);
+  const isAuthPage = ['/login', '/signup', '/register', '/activate', '/forgot', '/reset'].includes(location.pathname);
   const dishesLink = isAuthenticated ? '/dishes' : '/login?redirect=/dishes';
 
   return (
@@ -39,16 +40,11 @@ function App() {
           <div className="header-actions">
             {isAuthenticated ? (
               <div className="header-auth-group">
-                <div className="header-user-badge">
-                  <span className="header-user-name" title={user.email}>👤 {user.username || user.email}</span>
-                  <button type="button" className="header-logout-btn" onClick={logout}>Đăng xuất</button>
-                </div>
-                <Link className="button small" to="/dishes">Khám phá món ăn ↗</Link>
+                <AccountMenu/>
               </div>
             ) : (
               <div className="header-auth-group">
                 <Link className="header-login-link" to="/login">Đăng nhập</Link>
-                <Link className="button small" to="/login?redirect=/dishes">Khám phá món ăn ↗</Link>
               </div>
             )}
           </div>
@@ -57,13 +53,7 @@ function App() {
             <nav>
               <Link to="/#destinations">Khám phá</Link>
               <Link to={dishesLink}>Món ăn</Link>
-              {isAuthenticated ? (
-                <button type="button" onClick={logout} className="mobile-logout-btn">
-                  Đăng xuất ({user.username || user.email})
-                </button>
-              ) : (
-                <Link to="/login">Đăng nhập / Đăng ký</Link>
-              )}
+              {!isAuthenticated && <Link to="/login">Đăng nhập / Đăng ký</Link>}
               <Link to="/admin/dishes">Quản trị demo</Link>
             </nav>
           </details>
@@ -76,8 +66,11 @@ function App() {
         <Route path="/" element={<Home/>}/>
         <Route path="/login" element={<AuthPage initialMode="login"/>}/>
         <Route path="/signup" element={<AuthPage initialMode="signup"/>}/>
-        <Route path="/dishes" element={<ProtectedRoute><Catalog/></ProtectedRoute>}/>
-        <Route path="/dishes/:id" element={<ProtectedRoute><PublicDetail resource="dishes"/></ProtectedRoute>}/>
+        <Route path="/register" element={<AuthPage initialMode="signup"/>}/>
+        {['activate', 'forgot', 'reset'].map(mode => <Route key={mode} path={`/${mode}`} element={<AuthPage initialMode={mode}/>}/>)}
+        <Route element={<ProtectedRoute/>}>
+        <Route path="/dishes" element={<Catalog/>}/>
+        <Route path="/dishes/:id" element={<PublicDetail resource="dishes"/>}/>
         {['chefs', 'ingredients', 'restaurants'].map(resource => (
           <React.Fragment key={resource}>
             <Route path={`/${resource}/:id`} element={<PublicDetail key={resource} resource={resource}/>}/>
@@ -94,6 +87,7 @@ function App() {
         <Route path="/admin/dishes/:id/delete" element={<AdminRecord resource="dishes" deleting/>}/>
         <Route path="/admin/dishes/:id" element={<AdminRecord resource="dishes"/>}/>
         <Route path="/admin" element={<Navigate to="/admin/dishes" replace/>}/>
+        </Route>
         <Route path="*" element={<main id="main" tabIndex="-1" className="shell page-main empty-state"><h1>Không tìm thấy trang</h1><Link to="/">Về trang chủ</Link></main>}/>
       </Routes>
       {!isAuthPage && (

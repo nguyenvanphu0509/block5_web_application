@@ -32,7 +32,7 @@ test('failed first OTP can recover via registration/resend; failed resend preser
  const page=await agent.get('/register');const csrf=page.text.match(/name="_csrf" value="([^"]+)"/)[1];
  const post=(path,body)=>agent.post(path).type('form').send({_csrf:csrf,...body});
  const e='otp-delivery@example.com',password='original-registration-password';
- async function register(p=password){return post('/register',{email:e,password:p});}
+ async function register(p=password){return post('/register',{email:e,password:p,confirmPassword:p});}
  try{
   const first=await register();assert.equal(first.status,303);assert.equal((await pool.query('SELECT * FROM block8_auth.activation')).rows.length,0);
   assert.equal((await pool.query('SELECT status FROM block8_auth.users')).rows[0].status,'pending');

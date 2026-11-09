@@ -17,9 +17,17 @@
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path data-eye-slash d="m3 3 18 18"/></svg>
 </button>
 </div></div><% if(mode!=='login'){ %><p class="otp-help">Mật khẩu từ 15 đến 128 ký tự. Phân biệt chữ hoa/thường; khoảng trắng được tính là ký tự.</p><% } %><% } %>
+<% if(mode==='register') { %><div class="auth-field bordered">
+<label for="auth-confirm-password">Nhập lại mật khẩu</label>
+<div class="auth-password-wrapper">
+<input id="auth-confirm-password" type="password" name="confirmPassword" required minlength="15" maxlength="128" autocomplete="new-password">
+<button class="auth-password-toggle" type="button" data-toggle-password aria-label="Hiện mật khẩu" aria-controls="auth-confirm-password" aria-pressed="false">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path data-eye-slash d="m3 3 18 18"/></svg>
+</button>
+</div></div><% } %>
 <% if(mode==='activate') { %><label class="otp-field">Mã xác thực email<input class="otp-input" name="otp" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" placeholder="000000" required autocomplete="one-time-code" aria-describedby="otp-help"></label><p id="otp-help" class="otp-help">Không dùng mã này làm mật khẩu. Nếu mã hết hạn, hãy yêu cầu gửi lại.</p><% } %>
 <% if(mode==='login') { %><input type="hidden" name="redirect" value="<%= redirect %>"><label class="ssr-remember"><input type="checkbox" name="remember" value="1"> Ghi nhớ 7 ngày</label><% } %>
-<% if(['login','register'].includes(mode) && recaptchaSiteKey) { %><div class="g-recaptcha" data-sitekey="<%= recaptchaSiteKey %>"></div><% } %>
+<% if(captchaRequired && recaptchaSiteKey) { %><div class="g-recaptcha" data-sitekey="<%= recaptchaSiteKey %>"></div><% } %>
 <button class="auth-start-btn" type="submit"><%= mode==='activate'?'Xác minh email':mode==='register'?'Đăng ký và nhận OTP':mode==='login'?'Đăng nhập':'Tiếp tục' %></button></form>
 <% } else { %><p class="otp-help">Hãy yêu cầu một liên kết mới để đặt lại mật khẩu.</p><a class="auth-start-btn" href="/forgot">Yêu cầu liên kết mới</a><% } %>
 <% if(mode==='activate') { %><form data-auth-form class="otp-resend" method="POST" action="/activate/resend"><input type="hidden" name="_csrf" value="<%= csrf %>"><% if(email) { %><input type="hidden" name="email" value="<%= email %>"><% }else{ %><label>Email<input type="email" name="email" required></label><% } %><button class="button" type="submit" data-resend-until="<%= resendUntil %>">Gửi lại OTP</button><p class="otp-help">Chưa nhận được? Kiểm tra thư rác. Mỗi lần gửi cách nhau ít nhất 60 giây; mã mới thay mã cũ.</p></form><% } %>
@@ -31,5 +39,5 @@
 <div class="auth-floating-card"><h2 class="auth-floating-title">Khám Phá Hương Vị, Theo Cách Của Bạn!</h2><p>Trải nghiệm tinh hoa ẩm thực Sài Gòn.</p></div>
 <div class="auth-banner-content"><h2>Khám Phá Thế Giới Ẩm Thực,<br>Vượt Mọi Giới Hạn!</h2></div></div></aside></section></main>
 <script src="/js/auth.js" defer></script>
-<% if(['login','register'].includes(mode) && recaptchaSiteKey) { %><script src="https://www.google.com/recaptcha/api.js" async defer></script><% } %>
+<% if(captchaRequired && recaptchaSiteKey) { %><script src="https://www.google.com/recaptcha/api.js" async defer></script><% } %>
 <%- include('../partials/footer') %>

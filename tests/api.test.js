@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
-import { createApi } from '../api/src/app.js';
+import { createApi } from './auth-fixture.js';
 import { createFixture } from './fixtures.js';
 
 const origin = 'http://localhost:5173';
@@ -61,7 +61,7 @@ test('API: technical errors and CORS including readable error responses', async 
   }
   const denied = await request(app).post('/api/chefs').set('Origin', 'https://bad.example').send({ name: 'x' }).expect(403);
   assert.equal(denied.headers['access-control-allow-origin'], undefined); assert.equal(denied.body.ok, undefined);
-  await request(app).options('/api/chefs').set('Origin', origin).set('Access-Control-Request-Headers', 'authorization').expect(403);
+  await request(app).options('/api/chefs').set('Origin', origin).set('Access-Control-Request-Headers', 'authorization').expect(204);
   db.dish.findMany = async () => { throw new Error('SECRET password'); };
   const failed = await request(app).get('/api/dishes').set('Origin', origin).expect(500);
   assert.equal(failed.body.ok, undefined); assert.doesNotMatch(failed.text, /SECRET|password/);

@@ -10,7 +10,7 @@ export function createWebServer() {
   const apiOrigin = new URL(process.env.WEB_API_ORIGIN || process.env.VITE_API_BASE_URL || 'http://localhost:3000').origin;
   app.use((req, res, next) => {
     res.set({ 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'DENY',
-      'Content-Security-Policy': `default-src 'self'; connect-src 'self' ${apiOrigin}; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src ${imageSources}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`,
+      'Content-Security-Policy': `default-src 'self'; connect-src 'self' ${apiOrigin} https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src ${imageSources}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`,
     }); next();
   });
   app.use('/api', (req, res) => res.status(404).json({ message: 'API chạy ở origin riêng.' }));

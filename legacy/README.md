@@ -122,6 +122,7 @@ Giao diện: `node legacy/scripts/visual-qa.js` từ gốc chạy Chrome headles
 - `GET/POST /login`, xác thực bằng email và password; lỗi chung cho tài khoản không tồn tại, sai password hoặc chưa active.
 - Bộ đếm lưu PostgreSQL theo email chuẩn hóa và IP, áp dụng cả email không tồn tại.
 - Trong cửa sổ 15 phút: yêu cầu CAPTCHA sau 3 lần sai theo email hoặc 10 lần sai theo IP; khóa 15 phút khi đạt 10 lần theo email hoặc 50 lần theo IP.
+- Trang đăng nhập ban đầu không hiển thị hoặc tải script CAPTCHA khi chưa đạt ngưỡng. CAPTCHA xuất hiện ngay sau lần sai đạt ngưỡng; tải lại trang vẫn kiểm tra lịch sử theo email vừa nhập và IP trong PostgreSQL.
 - Đang khóa trả trang 429 kể cả password/CAPTCHA đúng; CAPTCHA đúng không xóa bộ đếm. Kiểm tra giới hạn trước bước băm password.
 - Đăng nhập thành công tạo sid mới, lưu session trước khi trả `303`; mặc định tới `/dishes`, chỉ nhận redirect nội bộ thuộc các route đã cho phép.
 - Cookie tên `sid`, HttpOnly, SameSite=Lax, Secure khi HTTPS, Path=/; không đặt Domain. Session hết hạn sau 8 giờ; chọn ghi nhớ là 7 ngày, không tự gia hạn vô hạn.

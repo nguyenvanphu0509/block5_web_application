@@ -143,3 +143,42 @@ Tại thời điểm tổng hợp, 7 test cấp cao trong flow.test.js và deliv
 Sau yêu cầu không đọc .env, test:flow được chạy với preload chặn đọc file môi trường, mailer/DB giả lập. Không chạy lại bộ test cần mở cấu hình thật để lấy credential. Kiểm tra thư thật được thực hiện qua website đang chạy và Gmail được kết nối, không mở file cấu hình: đã xác nhận thư OTP lần đầu và một lần gửi lại có trong Inbox của alias do người dùng cho phép; không tự nhập mã để active tài khoản thử và không sửa tài khoản chính.
 
 Ảnh minh chứng trong artifacts (không commit): otp-mobile.png, otp-desktop.png, hero-photo-fixed.png. Không đưa ảnh có OTP/token/password/cookie vào báo cáo. Riêng log SMTP chỉ dùng trường đã được lọc, không chép lỗi/raw response có thể chứa bí mật.
+
+## 
+
+resets — quản lý link đặt lại mật khẩu
+
+Ví dụ bạn bấm “Quên mật khẩu”, server gửi email chứa link có token. Bảng này lưu:
+- hash: bản băm SHA-256 của token trong link.
+- user_id: link này dành cho tài khoản nào.
+- expires_at: thời điểm hết hạn, hiện là 15 phút.
+- used_at: thời điểm đã dùng; NULL nghĩa là chưa dùng.
+Khi bạn đổi mật khẩu thành công, server cập nhật mật khẩu trong users và đánh dấu token đã dùng trong resets.
+
+limits — đếm số lần thao tác để chống lạm dụng
+
+Các trường gồm:
+- key: đang đếm thao tác nào, theo email hoặc IP nào, ví dụ login:email:abc@example.com.
+- count: số lần đã ghi nhận.
+- started_at: thời điểm bắt đầu khoảng đếm.
+- locked_until: bị khóa đến khi nào.
+Ví dụ với đăng nhập theo email: sau 3 lần thất bại sẽ yêu cầu CAPTCHA; đạt 10 lần sẽ khóa 15 phút. Bảng này cũng giới hạn đăng ký, quên mật khẩu và gửi lại OTP.
+
+mail_cooldowns — buộc chờ trước khi gửi lại OTP
+
+Hiện bảng này có hai trường:
+- key: chẳng hạn activation:abc@example.com.
+- available_at: thời điểm được phép yêu cầu gửi lại.
+Ví dụ bạn yêu cầu lúc 10:00:00, hệ thống ghi thời điểm được gửi tiếp là 10:01:00. Bấm lại trong thời gian đó sẽ bị chặn. Khác với limits đếm số lần, bảng này kiểm tra đã chờ đủ 60 giây chưa.
+
+activation — quản lý mã OTP kích hoạt
+
+Lưu tài khoản cần xác minh, bản băm của OTP, hạn 10 phút, số lần nhập sai và thời điểm đã dùng. Nhập đúng thì users.status chuyển từ pending sang active.
+
+session — giữ trạng thái của trình duyệt
+
+Có sid là mã phiên, sess chứa dữ liệu như userId, mã CSRF, và expire là thời điểm hết hạn. Cookie sid trên trình duyệt giúp server tìm đúng dòng ở bảng này. Phiên có thể tồn tại trước khi đăng nhập để giữ mã CSRF.
+
+captcha trong ảnh là bảng của cách làm CAPTCHA cũ. Code hiện tại dùng Google reCAPTCHA và file migration hiện đã có lệnh bỏ bảng này. Chỉ từ ảnh thì chưa xác định được database đã cập nhật migration mới hay chưa.
+
+  

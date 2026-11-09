@@ -17,6 +17,7 @@ try{
  await page.waitForSelector('.g-recaptcha',{timeout:15000});
  await page.locator('[name=email]').fill(address);
  await page.locator('[name=password]').fill(password);
+ await page.locator('[name=confirmPassword]').fill(password);
  await page.locator('[name=name]').fill('Kiểm thử OTP');
  console.log(JSON.stringify({state:'RECAPTCHA_READY',email:address}));
  for await(const line of lines){

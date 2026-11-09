@@ -1,10 +1,14 @@
+import { getSession, setSession } from './session.js';
+
 export class ApiError extends Error {
-  constructor(type, message, { code, fields, status } = {}) { super(message); this.type = type; this.code = code; this.fields = fields; this.status = status; }
+  constructor(type, message, details = {}) { super(message); this.type = type; Object.assign(this, details); }
 }
-export function createClient(baseUrl, fetcher = globalThis.fetch) {
+export function createClient(baseUrl, fetcher = globalThis.fetch, { session = getSession, clearSession = () => setSession(null) } = {}) {
   const base = baseUrl.replace(/\/$/, '');
-  return async (path, { method = 'GET', data, file, signal } = {}) => {
+  return async (path, { method = 'GET', data, file, signal, auth = true } = {}) => {
     const headers = {}; let body;
+    const accessToken = auth ? session()?.accessToken : null;
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
     if (file) { body = new FormData(); body.set('payload', JSON.stringify(data)); body.set('imageFile', file); }
     else if (data !== undefined) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(data); }
     let response;
@@ -13,10 +17,21 @@ export function createClient(baseUrl, fetcher = globalThis.fetch) {
       if (error.name === 'AbortError') throw error;
       throw new ApiError('technical', 'Không kết nối được API. Kiểm tra kết nối và thử lại.');
     }
-    if (!response.ok) throw new ApiError('technical', response.status === 503 ? 'Chế độ chỉ đọc hoặc dịch vụ chưa sẵn sàng.' : `Không thể xử lý yêu cầu (HTTP ${response.status}). Vui lòng thử lại.`, { status: response.status });
     let result;
-    try { result = await response.json(); }
-    catch { throw new ApiError('technical', 'API trả dữ liệu không đọc được.'); }
+    try { result = await response.json(); } catch {}
+    if (!response.ok) {
+      if (response.status === 401 && accessToken && session()?.accessToken === accessToken) clearSession();
+      const fallback = response.status === 401 ? 'Phiên đăng nhập không hợp lệ hoặc hết hạn. Vui lòng đăng nhập lại.'
+        : response.status === 403 ? 'Bạn không có quyền thực hiện thao tác này.'
+        : response.status === 429 ? 'Bạn đã thử quá nhiều lần. Vui lòng chờ rồi thử lại.'
+        : response.status === 503 ? 'Chế độ chỉ đọc hoặc dịch vụ chưa sẵn sàng.'
+        : `Không thể xử lý yêu cầu (HTTP ${response.status}). Vui lòng thử lại.`;
+      throw new ApiError(response.status < 500 ? 'business' : 'technical', result?.error?.message || fallback, {
+        ...result?.error, status: response.status,
+        captchaRequired: result?.error?.captchaRequired || result?.data?.captchaRequired,
+        retryAfter: Number(response.headers?.get('Retry-After')) || undefined,
+      });
+    }
     if (!result || typeof result.ok !== 'boolean' || (result.ok && !Object.hasOwn(result, 'data')) || (!result.ok && typeof result.error?.code !== 'string')) throw new ApiError('technical', 'API trả dữ liệu không đúng định dạng.');
     if (!result.ok) throw new ApiError('business', result.error.message || 'Yêu cầu không hợp lệ.', result.error);
     return result;

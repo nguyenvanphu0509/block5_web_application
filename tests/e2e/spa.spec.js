@@ -1,7 +1,8 @@
+import { createAdminSession } from '../auth-fixture.js';
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('viet_cuisine_user', JSON.stringify({ id: 'e2e', username: 'E2E', email: 'e2e@example.test' })));
+  await page.addInitScript(session => localStorage.setItem('viet_cuisine_session', JSON.stringify(session)), createAdminSession());
   page.__reactErrors = [];
   page.on('console', message => { if (message.type() === 'error' && /controlled|unique.*key|React.*error/i.test(message.text())) page.__reactErrors.push(message.text()); });
   await page.route('https://**', route => route.abort());
@@ -47,11 +48,11 @@ test('direct URLs, reload, notFound and technical errors', async ({ page }) => {
   await page.goto('/dishes/999999'); await expect(page.getByRole('heading', { name: 'Không tìm thấy bản ghi' })).toBeVisible();
   await page.goto('/unknown'); await expect(page.getByRole('heading', { name: 'Không tìm thấy trang' })).toBeVisible();
   await page.route('http://localhost:3100/api/dishes*', route => route.fulfill({ status: 500, json: { message: 'failed' }, headers: { 'Access-Control-Allow-Origin': 'http://localhost:5174' } }));
-  await page.goto('/dishes'); await expect(page.getByRole('heading', { name: 'Không thể tải dữ liệu' })).toBeVisible();
+  await page.goto('/dishes'); await expect(page.getByRole('alert')).toContainText('HTTP 500');
   await page.unroute('http://localhost:3100/api/dishes*'); await page.getByRole('button', { name: 'Thử lại' }).click();
   await expect(page.locator('.dish-card').first()).toBeVisible();
   await page.route('http://localhost:3100/api/dishes*', route => route.abort());
-  await page.reload(); await expect(page.getByRole('heading', { name: 'Không thể tải dữ liệu' })).toBeVisible();
+  await page.reload(); await expect(page.getByRole('alert')).toContainText('Không kết nối được API');
   expect(errors).toEqual([]);
 });
 
@@ -96,7 +97,10 @@ for (const [resource, label, extra] of [['chefs', 'đầu bếp', 'Chuyên môn'
     await page.getByRole('link', { name: 'Xóa', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Xác nhận xóa' })).toBeVisible();
     await page.getByRole('link', { name: 'Hủy', exact: true }).click();
-    await expect(page.getByRole('link', { name: `${name} edited`, exact: true })).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/admin/${resource}$`));
+    // The new record may be on a later page of the default catalog sort.
+    await page.goto(url);
+    await expect(page.getByRole('heading', { name: `${name} edited`, exact: true })).toBeVisible();
     await page.goto(`${url}/delete`);
     await page.getByRole('button', { name: 'Xóa bản ghi' }).click();
     await expect(page).toHaveURL(new RegExp(`/admin/${resource}$`));
