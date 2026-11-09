@@ -19,6 +19,7 @@ model User {
   chefId       Int?
   chef         Chef?    @relation(fields: [chefId], references: [id], onDelete: SetNull)
   accountTokens AccountToken[]
+  passwordResetTokens PasswordResetToken[]
   createdAt    DateTime @default(now())
 
   @@map("users")
@@ -38,6 +39,20 @@ model AccountToken {
 
   @@index([userId, purpose])
   @@map("account_tokens")
+}
+
+model PasswordResetToken {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  tokenHash    String   @unique @db.VarChar(64)
+  tokenVersion Int
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  expiresAt    DateTime @db.Timestamptz(3)
+  usedAt       DateTime? @db.Timestamptz(3)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, tokenVersion, createdAt])
+  @@map("password_reset_tokens")
 }
 
 model Dish {

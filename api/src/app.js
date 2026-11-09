@@ -14,6 +14,7 @@ import { listRecords, sorts } from './catalog.js';
 import { authConfig, bearerToken, createJwt, hashPassword, randomOtp, tokenDigest, verifyJwt, verifyPassword } from './auth.js';
 import { createMailer } from './mailer.js';
 import { assertChefAssignment, assertDishAttribute, canDeleteResource, canWriteResource } from './auth/policy.js';
+import { registerPasswordResetRoutes } from './auth/password-reset.js';
 
 const includeDish = { restaurant: true, chef: true, ingredients: { include: { ingredient: true } } };
 const success = (res, data, meta) => res.json({ ok: true, data, ...(data?.items && { error: null }), ...(meta && { meta }) });
@@ -132,36 +133,7 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
     if (auth.exposeDevTokens) response.data.otp = otp;
     return res.json(response);
   });
-  app.post('/api/auth/forgot-password', async (req, res) => {
-    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
-    const user = await db.user.findUnique({ where: { email } });
-    const response = { ok: true, data: { message: 'Nếu tài khoản tồn tại, hướng dẫn đặt lại mật khẩu đã được tạo.' } };
-    if (!user) return res.json(response);
-    const otp = randomOtp();
-    await db.accountToken.deleteMany({ where: { userId: user.id, purpose: 'password-reset-otp', usedAt: null } });
-    await db.accountToken.create({ data: { userId: user.id, purpose: 'password-reset-otp', tokenHash: tokenDigest(otp), expiresAt: new Date(Date.now() + 15 * 60 * 1000) } });
-    if (mailer) {
-      const resetUrl = `${origin}/forgot-password?email=${encodeURIComponent(user.email)}`;
-      await mailer.sendPasswordResetOtp({ to: user.email, otp, resetUrl });
-    }
-    else if (!auth.exposeDevTokens) throw new TechnicalError(503, 'Dịch vụ email chưa được cấu hình.');
-    if (auth.exposeDevTokens) response.data.otp = otp;
-    return res.json(response);
-  });
-  app.post('/api/auth/reset-password', async (req, res) => {
-    const rawToken = typeof req.body?.otp === 'string' ? req.body.otp.trim() : '';
-    const password = req.body?.password;
-    if (!/^\d{6}$/.test(rawToken) || typeof password !== 'string' || password.length < 15 || password.length > 128) {
-      throw new BusinessError('VALIDATION_FAILED', 'Mã OTP hoặc mật khẩu không hợp lệ.');
-    }
-    const record = await db.accountToken.findFirst({ where: { tokenHash: tokenDigest(rawToken), purpose: 'password-reset-otp', usedAt: null, expiresAt: { gt: new Date() } } });
-    if (!record) throw new BusinessError('INVALID_RESET_OTP', 'Mã OTP không hợp lệ hoặc đã hết hạn.');
-    await db.$transaction(async tx => {
-      await tx.user.update({ where: { id: record.userId }, data: { passwordHash: await hashPassword(password), tokenVersion: { increment: 1 } } });
-      await tx.accountToken.update({ where: { id: record.id }, data: { usedAt: new Date() } });
-    });
-    return res.json({ ok: true, data: { message: 'Mật khẩu đã được đặt lại.' } });
-  });
+  registerPasswordResetRoutes(app, { db, origin: allowed, mailer, logger });
   app.get('/api/auth/me', authenticate, (req, res) => success(res, { id: req.user.id, email: req.user.email, username: req.user.username, role: req.user.role }));
   app.get('/api/config', (req, res) => success(res, { preview, recaptchaSiteKey: auth.recaptchaSiteKey || null, imageChoices, imageOrigins: imageSources.split(' ').filter(x => x.startsWith('https:')), sorts: Object.fromEntries(Object.entries(sorts).map(([key, x]) => [key, x.label])) }));
   app.get('/api/home', async (req, res) => {

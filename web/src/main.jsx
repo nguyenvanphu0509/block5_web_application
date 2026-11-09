@@ -5,7 +5,7 @@ import { api } from './api.js';
 import { useLoad, useMotion, NavigationEffects } from './hooks.js';
 import { AuthProvider, useAuth, ProtectedRoute } from './AuthContext.jsx';
 import { AuthPage } from './pages/AuthPage.jsx';
-import { ForgotPasswordPage } from './pages/ForgotPasswordPage.jsx';
+import { ForgotPasswordPage, ResetPasswordPage } from './pages/ForgotPasswordPage.jsx';
 import { ActivatePage } from './pages/ActivatePage.jsx';
 import { Home } from './pages/Home.jsx';
 import { Catalog, PublicDetail } from './pages/Catalog.jsx';
@@ -19,13 +19,17 @@ function App() {
   const config = useLoad('config', signal => api('/config', { signal }));
   useMotion(root, location.pathname);
 
-  const isAuthPage = ['/login', '/signup', '/forgot-password', '/activate'].includes(location.pathname);
+  const isResetPage = location.pathname === '/reset-password';
+  const isAuthPage = isResetPage || ['/login', '/signup', '/forgot-password', '/activate'].includes(location.pathname);
   const dishesLink = isAuthenticated ? '/dishes' : '/login?redirect=/dishes';
 
   return (
     <div ref={root}>
       <NavigationEffects/>
-      <a className="skip-link" href="#main">Đến nội dung chính</a>
+      <a className="skip-link" href="#main" onClick={isResetPage ? event => {
+        event.preventDefault();
+        root.current?.querySelector('main')?.focus();
+      } : undefined}>Đến nội dung chính</a>
       {!isAuthPage && (
         <header className="site-header shell">
           <Link className="brand" to="/">
@@ -79,6 +83,7 @@ function App() {
         <Route path="/login" element={<AuthPage initialMode="login"/>}/>
         <Route path="/signup" element={<AuthPage initialMode="signup"/>}/>
         <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
+        <Route path="/reset-password" element={<ResetPasswordPage/>}/>
         <Route path="/activate" element={<ActivatePage/>}/>
         <Route path="/dishes" element={<ProtectedRoute><Catalog/></ProtectedRoute>}/>
         <Route path="/dishes/:id" element={<ProtectedRoute><PublicDetail resource="dishes"/></ProtectedRoute>}/>

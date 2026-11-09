@@ -3,9 +3,11 @@ import nodemailer from 'nodemailer';
 
 const logoPath = fileURLToPath(new URL('../../web/public/images/logo.png', import.meta.url));
 
-function otpEmail({ title, intro, otp, action, footer, resetUrl }) {
+function accountEmail({ title, intro, otp, action, footer, resetUrl }) {
+  const credential = otp ? `Mã OTP của bạn: ${otp}` : `Mở trang đặt lại mật khẩu: ${resetUrl}`;
+  const expiry = otp ? 'Mã có hiệu lực' : 'Liên kết có hiệu lực';
   return {
-    text: `${intro}\n\nMã OTP của bạn: ${otp}\n\nMã có hiệu lực trong 15 phút và chỉ được sử dụng một lần.${resetUrl ? `\n\nMở trang đặt lại mật khẩu: ${resetUrl}` : ''}\n\n${footer}`,
+    text: `${intro}\n\n${credential}\n\n${expiry} trong 15 phút và chỉ được sử dụng một lần.\n\n${action}\n\n${footer}`,
     html: `
       <!doctype html>
       <html lang="vi">
@@ -21,11 +23,11 @@ function otpEmail({ title, intro, otp, action, footer, resetUrl }) {
                 <td style="background:#ffffff;border-radius:24px;padding:38px 34px;box-shadow:0 12px 30px rgba(20,46,34,.16);">
                   <h1 style="margin:0 0 12px;text-align:center;color:#294c3d;font-size:26px;line-height:1.25;">${title}</h1>
                   <p style="margin:0 0 24px;text-align:center;color:#637168;font-size:15px;line-height:1.6;">${intro}</p>
-                  <div style="margin:0 auto 24px;padding:18px 20px;text-align:center;background:#f0f7f2;border:1px solid #d5e8da;border-radius:14px;">
+                  ${otp ? `<div style="margin:0 auto 24px;padding:18px 20px;text-align:center;background:#f0f7f2;border:1px solid #d5e8da;border-radius:14px;">
                     <div style="margin-bottom:7px;color:#637168;font-size:12px;text-transform:uppercase;letter-spacing:1.5px;">Mã xác thực</div>
                     <strong style="color:#294c3d;font-size:34px;letter-spacing:8px;">${otp}</strong>
-                  </div>
-                  <p style="margin:0;text-align:center;color:#637168;font-size:13px;line-height:1.6;">Mã có hiệu lực trong <strong style="color:#294c3d;">15 phút</strong> và chỉ được sử dụng một lần.</p>
+                  </div>` : ''}
+                  <p style="margin:0;text-align:center;color:#637168;font-size:13px;line-height:1.6;">${expiry} trong <strong style="color:#294c3d;">15 phút</strong> và chỉ được sử dụng một lần.</p>
                   <div style="margin:28px 0 0;padding-top:20px;border-top:1px solid #e8eee9;text-align:center;color:#849087;font-size:12px;line-height:1.6;">
                     ${action}
                     ${resetUrl ? `<div style="margin-top:18px;"><a href="${resetUrl}" style="display:inline-block;padding:12px 22px;border-radius:10px;background:#294c3d;color:#ffffff;text-decoration:none;font-weight:700;">Đặt lại mật khẩu</a></div>` : ''}
@@ -61,27 +63,29 @@ export function createMailer(config = mailConfig()) {
     host: config.host,
     port: config.port,
     secure: config.secure,
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 15_000,
     auth: { user: config.user, pass: config.password },
   });
   return {
-    async sendPasswordResetOtp({ to, otp, resetUrl }) {
-      const email = otpEmail({
+    async sendPasswordResetLink({ to, resetUrl }) {
+      const email = accountEmail({
         title: 'Đặt lại mật khẩu',
         intro: 'Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản Ẩm Thực Việt.',
-        otp,
         action: 'Nếu bạn không thực hiện yêu cầu này, hãy bỏ qua email này.',
         footer: 'Ẩm Thực Việt · Hương vị thiên nhiên, khơi nguồn cảm hứng',
-        resetUrl: resetUrl ? `${resetUrl}&reset=1` : undefined,
+        resetUrl,
       });
       await transporter.sendMail({
         from: config.from,
         to,
-        subject: 'Mã OTP đặt lại mật khẩu - Ẩm Thực Việt',
+        subject: 'Liên kết đặt lại mật khẩu - Ẩm Thực Việt',
         ...email,
       });
     },
     async sendActivationOtp({ to, otp }) {
-      const email = otpEmail({
+      const email = accountEmail({
         title: 'Kích hoạt tài khoản',
         intro: 'Chào mừng bạn đến với Ẩm Thực Việt! Hãy dùng mã dưới đây để kích hoạt tài khoản.',
         otp,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { useAuth } from '../AuthContext.jsx';
@@ -54,6 +54,7 @@ export function AuthPage({ initialMode = 'login' }) {
   const [captchaRequired, setCaptchaRequired] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
   const [captchaSiteKey, setCaptchaSiteKey] = useState('');
+  const signupCaptcha = useRef(null);
 
   // Tự động chuyển ảnh mỗi 5 giây
   const [slideIndex, setSlideIndex] = useState(0);
@@ -103,6 +104,10 @@ export function AuthPage({ initialMode = 'login' }) {
       }, 700);
     } catch (err) {
       if (err.code === 'CAPTCHA_REQUIRED') setCaptchaRequired(true);
+      if (mode === 'signup' && err.code === 'ALREADY_EXISTS') {
+        signupCaptcha.current?.reset();
+        setCaptchaToken('');
+      }
       setError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
       setPending(false);
     }
@@ -359,7 +364,7 @@ export function AuthPage({ initialMode = 'login' }) {
                 </div>
                 {captchaSiteKey && (
                   <div className="auth-captcha">
-                    <ReCAPTCHA sitekey={captchaSiteKey} onChange={setCaptchaToken} onExpired={() => setCaptchaToken('')} />
+                    <ReCAPTCHA ref={signupCaptcha} sitekey={captchaSiteKey} onChange={setCaptchaToken} onExpired={() => setCaptchaToken('')} />
                   </div>
                 )}
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { api, clearAccessToken } from './api.js';
 
@@ -22,17 +22,20 @@ function saveSession(data) {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(readUser);
   const navigate = useNavigate();
+  const clearSession = useCallback(() => {
+    clearAccessToken();
+    sessionStorage.removeItem(USER_KEY);
+    setUser(null);
+  }, []);
 
   useEffect(() => {
     const handleUnauthorized = () => {
-      clearAccessToken();
-      sessionStorage.removeItem(USER_KEY);
-      setUser(null);
+      clearSession();
       navigate('/login', { replace: true });
     };
     window.addEventListener('block6:unauthorized', handleUnauthorized);
     return () => window.removeEventListener('block6:unauthorized', handleUnauthorized);
-  }, [navigate]);
+  }, [clearSession, navigate]);
 
   useEffect(() => {
     if (!user) return;
@@ -56,13 +59,11 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    clearAccessToken();
-    sessionStorage.removeItem(USER_KEY);
-    setUser(null);
+    clearSession();
     navigate('/', { replace: true });
   };
 
-  return <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout, clearSession }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
