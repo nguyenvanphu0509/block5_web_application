@@ -1,4 +1,5 @@
 import { hashPassword, randomToken, tokenDigest } from '../auth.js';
+import { createCooldown, rateLimited } from './limits.js';
 import { BusinessError } from '../validation.js';
 
 const lifetimeMs = 15 * 60_000;
@@ -7,9 +8,10 @@ const invalidLink = () => new BusinessError('INVALID_RESET_TOKEN', 'Liên kết 
 
 export function registerPasswordResetRoutes(app, { db, origin, mailer, logger }) {
   const pendingMail = new Set();
+  const cooldown = createCooldown();
   app.locals.drainPasswordResetMail = () => Promise.all(pendingMail);
 
-  async function sendResetLink(email) {
+  async function reserveResetLink(email) {
     const rawToken = randomToken();
     const record = await db.$transaction(async tx => {
       const [user] = await tx.$queryRaw`
@@ -23,15 +25,18 @@ export function registerPasswordResetRoutes(app, { db, origin, mailer, logger })
         where: { ...scope, createdAt: { gt: new Date(Date.now() - resendDelayMs) } },
         select: { id: true },
       });
-      if (recent) return null;
+      if (recent) return { limited: true };
 
-      const createdAt = new Date();
+      const createdAt = new Date(Date.now());
       return tx.passwordResetToken.create({
         data: { ...scope, tokenHash: tokenDigest(rawToken), createdAt, expiresAt: new Date(createdAt.getTime() + lifetimeMs) },
       });
     });
-    if (!record) return;
+    if (record?.limited) return record;
+    return record ? { record, rawToken } : null;
+  }
 
+  async function sendResetLink(email, { record, rawToken }) {
     const resetUrl = new URL('/reset-password', origin);
     resetUrl.hash = new URLSearchParams({ token: rawToken }).toString();
     try {
@@ -49,7 +54,7 @@ export function registerPasswordResetRoutes(app, { db, origin, mailer, logger })
     });
   }
 
-  app.post('/api/auth/forgot-password', (req, res) => {
+  app.post('/api/auth/forgot-password', async (req, res) => {
     res.set('Cache-Control', 'no-store');
     const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
     if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -59,9 +64,13 @@ export function registerPasswordResetRoutes(app, { db, origin, mailer, logger })
       return res.status(503).json({ ok: false, error: { code: 'EMAIL_UNAVAILABLE', message: 'Dịch vụ gửi email chưa được cấu hình.' } });
     }
 
-    // Account lookup and delivery start after the public response.
+    if (cooldown(email, res)) return;
+
+    const reservation = await reserveResetLink(email);
+    if (reservation?.limited) { rateLimited(res); return; }
+    // Delivery starts after the public response.
     const task = new Promise(resolve => setImmediate(resolve))
-      .then(() => sendResetLink(email))
+      .then(() => reservation && sendResetLink(email, reservation))
       .catch(error => {
         logger.error('Password reset email task failed', {
           code: error?.code || 'UNKNOWN',
@@ -93,7 +102,7 @@ export function registerPasswordResetRoutes(app, { db, origin, mailer, logger })
       // Change the version first to serialize competing reset links for this account.
       const user = await tx.user.updateMany({
         where: { id: record.userId, tokenVersion: record.tokenVersion, status: 'active' },
-        data: { passwordHash, tokenVersion: { increment: 1 } },
+        data: { passwordHash, tokenVersion: { increment: 1 }, failedLoginAttempts: 0, captchaRequired: false, loginLockedUntil: null },
       });
       if (!user.count) throw invalidLink();
 

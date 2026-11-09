@@ -90,18 +90,18 @@ function App() {
         {['chefs', 'ingredients', 'restaurants'].map(resource => (
           <React.Fragment key={resource}>
             <Route path={`/${resource}/:id`} element={<PublicDetail key={resource} resource={resource}/>}/>
-            <Route path={`/admin/${resource}`} element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><AdminList key={resource} resource={resource}/></ProtectedRoute>}/>
-            <Route path={`/admin/${resource}/new`} element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><RecordForm key={`${resource}-new`} resource={resource}/></ProtectedRoute>}/>
-            <Route path={`/admin/${resource}/:id/edit`} element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><RecordForm key={`${resource}-edit`} resource={resource} editing/></ProtectedRoute>}/>
-            <Route path={`/admin/${resource}/:id/delete`} element={<ProtectedRoute roles={['admin', 'editor']}><AdminRecord key={`${resource}-delete`} resource={resource} deleting/></ProtectedRoute>}/>
-            <Route path={`/admin/${resource}/:id`} element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><AdminRecord key={`${resource}-show`} resource={resource}/></ProtectedRoute>}/>
+            <Route path={`/admin/${resource}`} element={<ProtectedRoute><AdminList key={resource} resource={resource}/></ProtectedRoute>}/>
+            <Route path={`/admin/${resource}/new`} element={<ProtectedRoute><RecordForm key={`${resource}-new`} resource={resource}/></ProtectedRoute>}/>
+            <Route path={`/admin/${resource}/:id/edit`} element={<ProtectedRoute><RecordForm key={`${resource}-edit`} resource={resource} editing/></ProtectedRoute>}/>
+            <Route path={`/admin/${resource}/:id/delete`} element={<ProtectedRoute><AdminRecord key={`${resource}-delete`} resource={resource} deleting/></ProtectedRoute>}/>
+            <Route path={`/admin/${resource}/:id`} element={<ProtectedRoute><AdminRecord key={`${resource}-show`} resource={resource}/></ProtectedRoute>}/>
           </React.Fragment>
         ))}
-        <Route path="/admin/dishes" element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><AdminList resource="dishes"/></ProtectedRoute>}/>
-        <Route path="/admin/dishes/new" element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><RecordForm resource="dishes"/></ProtectedRoute>}/>
-        <Route path="/admin/dishes/:id/edit" element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><RecordForm resource="dishes" editing/></ProtectedRoute>}/>
-        <Route path="/admin/dishes/:id/delete" element={<ProtectedRoute roles={['admin', 'editor']}><AdminRecord resource="dishes" deleting/></ProtectedRoute>}/>
-        <Route path="/admin/dishes/:id" element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><AdminRecord resource="dishes"/></ProtectedRoute>}/>
+        <Route path="/admin/dishes" element={<ProtectedRoute><AdminList resource="dishes"/></ProtectedRoute>}/>
+        <Route path="/admin/dishes/new" element={<ProtectedRoute><RecordForm resource="dishes"/></ProtectedRoute>}/>
+        <Route path="/admin/dishes/:id/edit" element={<ProtectedRoute><RecordForm resource="dishes" editing/></ProtectedRoute>}/>
+        <Route path="/admin/dishes/:id/delete" element={<ProtectedRoute><AdminRecord resource="dishes" deleting/></ProtectedRoute>}/>
+        <Route path="/admin/dishes/:id" element={<ProtectedRoute><AdminRecord resource="dishes"/></ProtectedRoute>}/>
         <Route path="/admin" element={<Navigate to="/admin/dishes" replace/>}/>
         <Route path="*" element={<main id="main" tabIndex="-1" className="shell page-main empty-state"><h1>Không tìm thấy trang</h1><Link to="/">Về trang chủ</Link></main>}/>
       </Routes>

@@ -13,7 +13,8 @@ import { BusinessError, TechnicalError, idValue, validRecord, checkRelations } f
 import { listRecords, sorts } from './catalog.js';
 import { authConfig, bearerToken, createJwt, hashPassword, randomOtp, tokenDigest, verifyJwt, verifyPassword } from './auth.js';
 import { createMailer } from './mailer.js';
-import { assertChefAssignment, assertDishAttribute, canDeleteResource, canWriteResource } from './auth/policy.js';
+import { canDeleteResource, canWriteResource } from './auth/policy.js';
+import { createCooldown, rateLimited } from './auth/limits.js';
 import { registerPasswordResetRoutes } from './auth/password-reset.js';
 
 const includeDish = { restaurant: true, chef: true, ingredients: { include: { ingredient: true } } };
@@ -56,17 +57,16 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
   };
   const authenticate = async (req, res, next) => {
     if (!authEnabled) return next();
-    const payload = verifyJwt(bearerToken(req.headers.authorization), auth);
+    const token = bearerToken(req.headers.authorization);
+    const payload = verifyJwt(token, auth);
+    if (!payload && verifyJwt(token, auth, { allowExpired: true })) return res.status(401).json({ ok: false, error: { code: 'TOKEN_EXPIRED', message: 'Phiên đăng nhập đã hết hạn.' } });
     if (!payload?.sub) return res.status(401).json({ ok: false, error: { code: 'UNAUTHENTICATED', message: 'Cần đăng nhập.' } });
     const user = await db.user.findUnique({ where: { id: Number(payload.sub) }, include: { chef: true } });
     if (!user || user.status !== 'active' || user.tokenVersion !== payload.tokenVersion) return res.status(401).json({ ok: false, error: { code: 'UNAUTHENTICATED', message: 'Tài khoản không hợp lệ.' } });
     req.user = user;
     next();
   };
-  const requireRole = (...roles) => (req, res, next) => {
-    if (!authEnabled || roles.includes(req.user?.role)) return next();
-    return res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Bạn không có quyền thực hiện thao tác này.' } });
-  };
+  const resendCooldown = createCooldown();
   app.post('/api/auth/register', async (req, res) => {
     const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
     const username = typeof req.body?.username === 'string' ? req.body.username.trim() : email.split('@')[0];
@@ -77,61 +77,95 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
     if (!(await verifyCaptcha(req.body?.captchaToken))) {
       throw new BusinessError('CAPTCHA_REQUIRED', 'Vui lòng xác minh CAPTCHA trước khi đăng ký.');
     }
-    if (await db.user.findFirst({ where: { OR: [{ email }, { username }] } })) throw new BusinessError('ALREADY_EXISTS', 'Tài khoản đã tồn tại.');
-    const user = await db.user.create({ data: { email, username, passwordHash: await hashPassword(password), role: 'viewer', status: 'pending', tokenVersion: 0 } });
+    const response = { ok: true, data: { message: 'Nếu thông tin đăng ký hợp lệ và chưa được sử dụng, mã kích hoạt đã được gửi qua email.' } };
+    if (await db.user.findFirst({ where: { OR: [{ email }, { username }] } })) return res.json(response);
+    let user;
+    try {
+      user = await db.user.create({ data: { email, username, passwordHash: await hashPassword(password), role: 'viewer', status: 'pending', tokenVersion: 0 } });
+    } catch (error) {
+      if (error.code === 'P2002') return res.json(response);
+      throw error;
+    }
     const otp = randomOtp();
     await db.accountToken.create({ data: { userId: user.id, purpose: 'activation-otp', tokenHash: tokenDigest(otp), expiresAt: new Date(Date.now() + 15 * 60 * 1000) } });
     if (mailer) await mailer.sendActivationOtp({ to: user.email, otp });
     else if (!auth.exposeDevTokens) throw new TechnicalError(503, 'Dịch vụ email chưa được cấu hình.');
-    const data = { id: user.id, email: user.email, username: user.username, role: user.role };
-    if (auth.exposeDevTokens) data.otp = otp;
-    res.status(201).json({ ok: true, data });
+    return res.json(response);
   });
   app.post('/api/auth/login', async (req, res) => {
     const identity = typeof req.body?.email === 'string' ? req.body.email.trim() : '';
     const email = identity.toLowerCase();
     const password = req.body?.password;
-    const user = await db.user.findFirst({ where: { OR: [{ email }, { username: identity }] } });
-    if (!user || !(await verifyPassword(password, user.passwordHash))) {
-      if (user?.status === 'active') {
-        const failedLoginAttempts = user.failedLoginAttempts + 1;
-        const captchaRequired = failedLoginAttempts >= auth.recaptchaLoginThreshold;
-        await db.user.update({ where: { id: user.id }, data: { failedLoginAttempts, captchaRequired } });
-        if (captchaRequired) return res.json({ ok: false, error: { code: 'CAPTCHA_REQUIRED', message: 'Vui lòng xác minh CAPTCHA.' } });
+    return db.$transaction(async tx => {
+      const candidate = await tx.user.findFirst({ where: { OR: [{ email }, { username: identity }] } });
+      if (candidate) await tx.$queryRaw`SELECT id FROM users WHERE id = ${candidate.id} FOR NO KEY UPDATE`;
+      let user = candidate ? await tx.user.findUnique({ where: { id: candidate.id } }) : null;
+      if (user?.loginLockedUntil && new Date(user.loginLockedUntil).getTime() > Date.now()) {
+        rateLimited(res, Math.ceil((new Date(user.loginLockedUntil).getTime() - Date.now()) / 1000));
+        return;
       }
-      return res.json({ ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email hoặc mật khẩu không đúng.' } });
-    }
-    if (user.status === 'pending') return res.json({ ok: false, error: { code: 'ACCOUNT_NOT_ACTIVATED', message: 'Tài khoản chưa được kích hoạt.', fields: { email: user.email } } });
-    if (user.status !== 'active') return res.json({ ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email hoặc mật khẩu không đúng.' } });
-    if (user.captchaRequired && !(await verifyCaptcha(req.body?.captchaToken))) return res.json({ ok: false, error: { code: 'CAPTCHA_REQUIRED', message: 'Vui lòng xác minh CAPTCHA.' } });
-    const accessToken = createJwt({ sub: String(user.id), tokenVersion: user.tokenVersion }, auth);
-    await db.user.update({ where: { id: user.id }, data: { failedLoginAttempts: 0, captchaRequired: false } });
-    return res.json({ ok: true, data: { accessToken, user: { id: user.id, email: user.email, username: user.username, role: user.role } } });
+      if (user?.loginLockedUntil) user = await tx.user.update({ where: { id: user.id }, data: { loginLockedUntil: null, failedLoginAttempts: 0 } });
+      if (!user || !(await verifyPassword(password, user.passwordHash))) {
+        if (user?.status === 'active') {
+          const failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+          const captchaRequired = failedLoginAttempts >= auth.recaptchaLoginThreshold;
+          await tx.user.update({ where: { id: user.id }, data: { failedLoginAttempts, captchaRequired, loginLockedUntil: failedLoginAttempts >= 5 ? new Date(Date.now() + 15 * 60_000) : null } });
+          if (failedLoginAttempts >= 5) { rateLimited(res, 15 * 60); return; }
+          if (captchaRequired) return res.json({ ok: false, error: { code: 'CAPTCHA_REQUIRED', message: 'Vui lòng xác minh CAPTCHA.' } });
+        }
+        return res.json({ ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email hoặc mật khẩu không đúng.' } });
+      }
+      if (user.status === 'pending') return res.json({ ok: false, error: { code: 'ACCOUNT_NOT_ACTIVATED', message: 'Tài khoản chưa được kích hoạt.', fields: { email: user.email } } });
+      if (user.status !== 'active') return res.json({ ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email hoặc mật khẩu không đúng.' } });
+      if (user.captchaRequired && !(await verifyCaptcha(req.body?.captchaToken))) return res.json({ ok: false, error: { code: 'CAPTCHA_REQUIRED', message: 'Vui lòng xác minh CAPTCHA.' } });
+      const accessToken = createJwt({ sub: String(user.id), tokenVersion: user.tokenVersion }, auth);
+      await tx.user.update({ where: { id: user.id }, data: { failedLoginAttempts: 0, captchaRequired: false, loginLockedUntil: null } });
+      return res.json({ ok: true, data: { accessToken, user: { id: user.id, email: user.email, username: user.username, role: user.role } } });
+    }, { timeout: 30_000 });
   });
   app.post('/api/auth/activate', async (req, res) => {
     const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
     const otp = typeof req.body?.otp === 'string' ? req.body.otp.trim() : '';
-    const user = await db.user.findUnique({ where: { email } });
-    if (!user || user.status !== 'pending') throw new BusinessError('INVALID_OTP', 'Mã OTP không hợp lệ hoặc đã hết hạn.');
-    const record = await db.accountToken.findFirst({ where: { userId: user.id, purpose: 'activation-otp', tokenHash: tokenDigest(otp), usedAt: null, expiresAt: { gt: new Date() } } });
-    if (!record) throw new BusinessError('INVALID_OTP', 'Mã OTP không hợp lệ hoặc đã hết hạn.');
-    await db.$transaction(async tx => {
+    const result = await db.$transaction(async tx => {
+      const user = await tx.user.findUnique({ where: { email } });
+      if (!user || user.status !== 'pending') return 'invalid';
+      await tx.$queryRaw`SELECT id FROM users WHERE id = ${user.id} FOR NO KEY UPDATE`;
+      const record = await tx.accountToken.findFirst({ where: { userId: user.id, purpose: 'activation-otp', usedAt: null, expiresAt: { gt: new Date() } }, orderBy: { id: 'desc' } });
+      if (!record) return 'invalid';
+      if (record.attempts >= 5) return 'limited';
+      if (record.tokenHash !== tokenDigest(otp)) {
+        await tx.accountToken.update({ where: { id: record.id }, data: { attempts: { increment: 1 } } });
+        return record.attempts + 1 >= 5 ? 'limited' : 'invalid';
+      }
       await tx.user.update({ where: { id: user.id }, data: { status: 'active' } });
       await tx.accountToken.update({ where: { id: record.id }, data: { usedAt: new Date() } });
+      return 'active';
     });
+    if (result === 'limited') { rateLimited(res); return; }
+    if (result !== 'active') throw new BusinessError('INVALID_OTP', 'Mã OTP không hợp lệ hoặc đã hết hạn.');
     return res.json({ ok: true, data: { message: 'Tài khoản đã được kích hoạt.' } });
   });
   app.post('/api/auth/resend-activation', async (req, res) => {
     const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
     const response = { ok: true, data: { message: 'Nếu tài khoản đang chờ kích hoạt, mã OTP mới đã được gửi.' } };
+    if (resendCooldown(email, res)) return;
     const user = await db.user.findUnique({ where: { email } });
     if (!user || user.status !== 'pending') return res.json(response);
     const otp = randomOtp();
-    await db.accountToken.deleteMany({ where: { userId: user.id, purpose: 'activation-otp', usedAt: null } });
-    await db.accountToken.create({ data: { userId: user.id, purpose: 'activation-otp', tokenHash: tokenDigest(otp), expiresAt: new Date(Date.now() + 15 * 60 * 1000) } });
+    const retryAfter = await db.$transaction(async tx => {
+      await tx.$queryRaw`SELECT id FROM users WHERE id = ${user.id} FOR NO KEY UPDATE`;
+      const current = await tx.user.findUnique({ where: { id: user.id } });
+      if (current.status !== 'pending') return -1;
+      const recent = await tx.accountToken.findFirst({ where: { userId: user.id, purpose: 'activation-otp', createdAt: { gt: new Date(Date.now() - 60_000) } }, orderBy: { id: 'desc' } });
+      if (recent) return Math.max(1, Math.ceil((new Date(recent.createdAt).getTime() + 60_000 - Date.now()) / 1000));
+      await tx.accountToken.deleteMany({ where: { userId: user.id, purpose: 'activation-otp', usedAt: null } });
+      await tx.accountToken.create({ data: { userId: user.id, purpose: 'activation-otp', tokenHash: tokenDigest(otp), expiresAt: new Date(Date.now() + 15 * 60 * 1000) } });
+      return 0;
+    });
+    if (retryAfter > 0) { rateLimited(res, retryAfter); return; }
+    if (retryAfter === -1) return res.json(response);
     if (mailer) await mailer.sendActivationOtp({ to: user.email, otp });
     else if (!auth.exposeDevTokens) throw new TechnicalError(503, 'Dịch vụ email chưa được cấu hình.');
-    if (auth.exposeDevTokens) response.data.otp = otp;
     return res.json(response);
   });
   registerPasswordResetRoutes(app, { db, origin: allowed, mailer, logger });
@@ -167,6 +201,7 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
       if (!record) throw new BusinessError('NOT_FOUND', 'Bản ghi không tồn tại hoặc đã bị xóa.');
       return record;
     };
+    if (['chefs', 'ingredients'].includes(resource)) app.use(base, authenticate);
     app.get(base, async (req, res) => {
       const { data, meta } = await listRecords(db, resource, model, req.query);
       success(res, resource === 'dishes' ? data : data.map(x => serialize(x, resource)), { ...meta, preview });
@@ -174,13 +209,8 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
     app.get(`${base}/:id`, async (req, res) => success(res, serialize(await find(idValue(req.params.id)), resource), { preview }));
     const write = partial => async (req, res) => {
       const id = partial ? idValue(req.params.id) : null;
-      const current = partial ? await find(id) : null;
-      if (authEnabled && resource === 'dishes' && current) assertDishAttribute(req.user, current);
+      if (partial) await find(id);
       const data = validRecord(req.body, resource, partial);
-      if (authEnabled && resource === 'dishes') {
-        assertChefAssignment(req.user, data);
-        if (req.user.role === 'chef' && !partial) data.chefId = req.user.chefId;
-      }
       if (req.file && !['dishes', 'restaurants'].includes(resource)) throw new BusinessError('VALIDATION_FAILED', 'Tài nguyên không hỗ trợ ảnh.', { imageFile: 'Không hỗ trợ ảnh.' });
       if (req.file && data.imagePath) throw new BusinessError('VALIDATION_FAILED', 'Chỉ chọn một nguồn ảnh.', { imageFile: 'Chọn file hoặc URL.' });
       try { validateImageFile(req.file); } catch (error) { throw new BusinessError('VALIDATION_FAILED', 'Ảnh không hợp lệ.', { imageFile: error.message }); }
@@ -227,8 +257,7 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
     app.patch(`${base}/:id`, authenticate, (req, res, next) => !authEnabled || canWriteResource(req.user, resource) ? next() : res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Bạn không có quyền ghi tài nguyên này.' } }), writable, parseWrite, write(true));
     app.delete(`${base}/:id`, authenticate, (req, res, next) => !authEnabled || canDeleteResource(req.user, resource) ? next() : res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Bạn không có quyền xóa tài nguyên này.' } }), writable, async (req, res) => {
       const id = idValue(req.params.id);
-      const current = await find(id);
-      if (authEnabled && resource === 'dishes') assertDishAttribute(req.user, current);
+      await find(id);
       await model.delete({ where: { id } });
       success(res, null);
     });

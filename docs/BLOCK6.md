@@ -84,13 +84,13 @@ API CSR dùng JWT Bearer, không dùng session/cookie phiên:
 - Đặt `JWT_SECRET` và tùy chọn `JWT_EXPIRES_IN` trong `api/.env`; không đưa các giá trị này vào `web` hoặc Git.
 - `POST /api/auth/register` luôn tạo role `viewer`; `POST /api/auth/login` trả `accessToken` sau khi xác thực mật khẩu.
 - Gửi token bằng `Authorization: Bearer <accessToken>`. `401` là thiếu/sai/hết hạn token; `403` là đã xác thực nhưng thiếu quyền.
-- `GET /api/dishes` và `GET /api/dishes/:id` vẫn công khai, giữ nguyên tìm kiếm/phân trang. Các thao tác ghi yêu cầu role phù hợp.
+- `GET /api/dishes` và `GET /api/dishes/:id` vẫn công khai, giữ nguyên tìm kiếm/phân trang. Mọi tài khoản active đều được CRUD mọi tài nguyên, bao gồm viewer và chef; không giới hạn chủ sở hữu món. Mọi endpoint chefs/ingredients (kể cả GET) yêu cầu JWT.
 - SPA lưu token trong `sessionStorage` để giới hạn thời gian tồn tại theo tab. Đây không phải biện pháp chống XSS; không lưu secret backend trong bundle.
 - MFA không nằm trong phạm vi triển khai CSR này theo quyết định của bài thực hành.
 - Với Supabase đã có bảng `public.users`, chạy [SQL tạo bảng password_reset_tokens](../api/prisma/sql/password_reset_tokens.sql) trong SQL Editor, sau đó chạy `npm run db:generate` và khởi động lại ứng dụng. API kết nối bằng tài khoản PostgreSQL của backend.
 - Trang `/forgot-password` gửi liên kết qua SMTP tới email của tài khoản đã kích hoạt. Đặt `SPA_ORIGIN` trong `api/.env` thành địa chỉ frontend mở được trên thiết bị nhận thư, dùng HTTPS khi triển khai. Có thể cấu hình Gmail với `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_SECURE=true`, `SMTP_USER`, Gmail App Password cho `SMTP_PASSWORD` và tùy chọn `SMTP_FROM`.
-- `/reset-password` đọc token từ liên kết trong email và gửi token cùng mật khẩu mới tới API. Bảng `password_reset_tokens` lưu bản băm SHA-256. Liên kết hết hạn sau 15 phút, dùng một lần và mất hiệu lực khi đổi mật khẩu thành công. Hệ thống chỉ gửi tối đa một liên kết trong mỗi phút cho cùng tài khoản và ghi mã lỗi SMTP trong log API nếu gửi thất bại.
-- `account_tokens` lưu bản băm của OTP kích hoạt tài khoản. `AUTH_EXPOSE_DEV_TOKENS=true` phục vụ thử nghiệm OTP kích hoạt trong development. Production đặt `false`.
+- `/reset-password` đọc token từ liên kết trong email và gửi token cùng mật khẩu mới tới API. Bảng `password_reset_tokens` lưu bản băm SHA-256. Liên kết hết hạn sau 15 phút, dùng một lần và mất hiệu lực khi đổi mật khẩu thành công. Yêu cầu lặp trong 60 giây trả `429 RATE_LIMITED` kèm `Retry-After`; hệ thống chỉ gửi tối đa một liên kết trong mỗi phút cho cùng tài khoản và ghi mã lỗi SMTP trong log API nếu gửi thất bại.
+- `account_tokens` lưu bản băm của OTP kích hoạt tài khoản. OTP chỉ gửi qua email, không trả trong response đăng ký/gửi lại.
 - Đăng ký tạo tài khoản ở trạng thái `pending`, gửi OTP kích hoạt qua Gmail và chỉ chuyển sang `active` sau `POST /api/auth/activate`; tài khoản pending không nhận JWT.
 - `POST /api/auth/resend-activation` gửi lại OTP cho tài khoản pending; phản hồi dùng thông điệp chung để không làm lộ email có tồn tại hay không.
 - CAPTCHA reCAPTCHA V2 chỉ được yêu cầu sau số lần đăng nhập sai liên tiếp theo `RECAPTCHA_LOGIN_THRESHOLD` và chỉ kiểm tra trên tài khoản tồn tại. CAPTCHA token được xác minh tại Google từ backend, không tin kết quả do client tự gửi.
@@ -225,3 +225,5 @@ E2E là end-to-end: kiểm tra một luồng hoàn chỉnh như mở trang → n
 Các test này không cần thiết để chạy website. Chỉ chạy khi muốn xác minh sau thay đổi; không tự chạy khi `npm run dev` hoặc `npm start`.
 
 Kết quả sau tinh gọn: `npm test` đạt 17/17; Playwright production đạt 11/11. Integration database skip vì chưa cấu hình TEST_DATABASE_URL. Bundle frontend đã build lại với API mặc định cổng 3000.
+
+Chính sách nghiệm thu JWT hoàn thiện và thu hồi JWT sau reset: [Bài 2](BLOCK6_BAI2_COMPLETION_PLAN.md).

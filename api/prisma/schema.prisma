@@ -16,6 +16,7 @@ model User {
   tokenVersion Int      @default(0)
   failedLoginAttempts Int @default(0)
   captchaRequired Boolean @default(false)
+  loginLockedUntil DateTime?
   chefId       Int?
   chef         Chef?    @relation(fields: [chefId], references: [id], onDelete: SetNull)
   accountTokens AccountToken[]

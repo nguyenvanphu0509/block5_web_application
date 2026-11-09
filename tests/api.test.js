@@ -9,6 +9,8 @@ const origin = 'http://localhost:5173';
 function setup(options = {}) { const fixture = createFixture(); return { ...fixture, app: createApi({ db: fixture.db, logger: { error() {} }, ...options }) }; }
 
 test('forgot password sends a private reset link and keeps the previous link on SMTP failure', async t => {
+  let now = Date.now();
+  t.mock.method(Date, 'now', () => now);
   const { db } = createFixture();
   const user = { id: 1, email: 'reset@example.test', tokenVersion: 0 };
   let nextId = 2;
@@ -41,10 +43,12 @@ test('forgot password sends a private reset link and keeps the previous link on 
   assert.deepEqual(logger.error.mock.calls[0].arguments[1], { code: 'EAUTH', responseCode: 535 });
   assert.deepEqual([...tokens.keys()], [1]);
 
+  now += 61_000;
   accepted = true;
   const success = await reset(user.email.toUpperCase()).expect(200);
   const unknown = await reset('unknown@example.test').expect(200);
-  await reset(user.email).expect(200);
+  await reset('UNKNOWN@example.test').expect(429);
+  await reset(user.email).expect(429);
   await app.locals.drainPasswordResetMail();
   assert.deepEqual(failed.body, success.body);
   assert.deepEqual(unknown.body, success.body);
@@ -58,6 +62,11 @@ test('forgot password sends a private reset link and keeps the previous link on 
   assert.ok(!success.text.includes(token));
   assert.deepEqual([...tokens.keys()], [3]);
   assert.equal(tokens.get(3).tokenHash, tokenDigest(token));
+  // A fresh API instance must still honor the persisted token cooldown.
+  const restarted = createApi({ db, mailer: { sendPasswordResetLink: send }, logger });
+  const limited = await request(restarted).post('/api/auth/forgot-password').send({ email: user.email }).expect(429);
+  assert.equal(limited.body.error.code, 'RATE_LIMITED');
+  assert.equal(send.mock.callCount(), 2);
 });
 
 for (const [resource, payload] of Object.entries({ dishes: { name: 'Món thử', price: 1000, available: false }, chefs: { name: 'Bếp thử', specialty: 'Món Việt' }, ingredients: { name: 'Muối', unit: 'g' }, restaurants: { name: 'Quán thử', cuisine: 'Việt', notableDishes: ['Phở'] } })) {

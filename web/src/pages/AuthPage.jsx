@@ -95,7 +95,7 @@ export function AuthPage({ initialMode = 'login' }) {
           captchaToken,
           remember: rememberMe,
         });
-        navigate(`/activate?email=${encodeURIComponent(email)}`, { state: { otp: registration.otp } });
+        navigate(`/activate?email=${encodeURIComponent(email)}`, { state: { message: registration.message } });
         return;
       }
 
@@ -104,10 +104,6 @@ export function AuthPage({ initialMode = 'login' }) {
       }, 700);
     } catch (err) {
       if (err.code === 'CAPTCHA_REQUIRED') setCaptchaRequired(true);
-      if (mode === 'signup' && err.code === 'ALREADY_EXISTS') {
-        signupCaptcha.current?.reset();
-        setCaptchaToken('');
-      }
       const activationEmail = err.fields?.email || (email.includes('@') ? email.trim() : '');
       if (mode === 'login' && (err.code === 'ACCOUNT_NOT_ACTIVATED' || /chưa được kích hoạt/i.test(err.message || '')) && activationEmail) {
         setPending(false);

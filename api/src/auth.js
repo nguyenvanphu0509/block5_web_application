@@ -43,7 +43,7 @@ export function createJwt(payload, { secret, expiresIn = '15m' }) {
   return `${content}.${signature}`;
 }
 
-export function verifyJwt(token, { secret }) {
+export function verifyJwt(token, { secret }, { allowExpired = false } = {}) {
   if (!secret || typeof token !== 'string') return null;
   const parts = token.split('.');
   if (parts.length !== 3) return null;
@@ -56,11 +56,12 @@ export function verifyJwt(token, { secret }) {
   } catch {
     return null;
   }
+  if (!parsedHeader || typeof parsedHeader !== 'object' || !parsedPayload || typeof parsedPayload !== 'object') return null;
   if (parsedHeader.alg !== ALGORITHM || parsedHeader.typ !== 'JWT') return null;
   const expected = hashToken(`${header}.${payload}`, secret);
   const actual = Buffer.from(signature, 'base64url');
   if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
-  if (!Number.isInteger(parsedPayload.exp) || parsedPayload.exp <= Math.floor(Date.now() / 1000)) return null;
+  if (!Number.isInteger(parsedPayload.exp) || (!allowExpired && parsedPayload.exp <= Math.floor(Date.now() / 1000))) return null;
   return parsedPayload;
 }
 
