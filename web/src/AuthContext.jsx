@@ -1,164 +1,81 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { api, clearAccessToken } from './api.js';
 
 const AuthContext = createContext(null);
+const USER_KEY = 'block6_user';
 
-const DEFAULT_USERS = [
-  {
-    id: 'user_1',
-    username: 'eli_trekker',
-    email: 'elitrecker@gmail.com',
-    password: 'password123',
-  },
-];
+function readUser() {
+  try {
+    const saved = sessionStorage.getItem(USER_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveSession(data) {
+  sessionStorage.setItem('block6_access_token', data.accessToken);
+  sessionStorage.setItem(USER_KEY, JSON.stringify(data.user));
+}
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem('viet_cuisine_user') || sessionStorage.getItem('viet_cuisine_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [users, setUsers] = useState(() => {
-    try {
-      const saved = localStorage.getItem('viet_cuisine_accounts');
-      return saved ? JSON.parse(saved) : DEFAULT_USERS;
-    } catch {
-      return DEFAULT_USERS;
-    }
-  });
+  const [user, setUser] = useState(readUser);
+  const navigate = useNavigate();
+  const clearSession = useCallback(() => {
+    clearAccessToken();
+    sessionStorage.removeItem(USER_KEY);
+    setUser(null);
+  }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('viet_cuisine_accounts', JSON.stringify(users));
-    } catch {}
-  }, [users]);
-
-  const login = async ({ email, password, remember = true }) => {
-    await new Promise(r => setTimeout(r, 400));
-    
-    const query = email.trim().toLowerCase();
-    if (!query) {
-      throw new Error('Vui lòng nhập email hoặc tên tài khoản.');
-    }
-    if (!password) {
-      throw new Error('Vui lòng nhập mật khẩu.');
-    }
-
-    const existing = users.find(
-      u => u.email.toLowerCase() === query || u.username.toLowerCase() === query
-    );
-    
-    if (existing) {
-      if (existing.password && existing.password !== password) {
-        throw new Error('Mật khẩu không chính xác. Vui lòng thử lại.');
-      }
-      const sessionUser = { id: existing.id, username: existing.username, email: existing.email };
-      setUser(sessionUser);
-      if (remember) {
-        localStorage.setItem('viet_cuisine_user', JSON.stringify(sessionUser));
-      } else {
-        sessionStorage.setItem('viet_cuisine_user', JSON.stringify(sessionUser));
-      }
-      return sessionUser;
-    }
-
-    // Tự động tạo phiên người dùng demo nếu chưa có
-    const usernameFromQuery = query.includes('@') ? query.split('@')[0] : query;
-    const emailFromQuery = query.includes('@') ? query : `${query}@gmail.com`;
-    const newUser = {
-      id: `user_${Date.now()}`,
-      username: usernameFromQuery,
-      email: emailFromQuery,
-      password: password || 'password123',
+    const handleUnauthorized = () => {
+      clearSession();
+      navigate('/login', { replace: true });
     };
-    setUsers(prev => [...prev, newUser]);
-    const sessionUser = { id: newUser.id, username: newUser.username, email: newUser.email };
-    setUser(sessionUser);
-    if (remember) {
-      localStorage.setItem('viet_cuisine_user', JSON.stringify(sessionUser));
-    } else {
-      sessionStorage.setItem('viet_cuisine_user', JSON.stringify(sessionUser));
-    }
-    return sessionUser;
+    window.addEventListener('block6:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('block6:unauthorized', handleUnauthorized);
+  }, [clearSession, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+    api('/auth/me').then(result => setUser(result.data)).catch(error => {
+      if (error.status === 401) {
+        window.dispatchEvent(new CustomEvent('block6:unauthorized'));
+      }
+    });
+  }, []);
+
+  const login = async ({ email, password, captchaToken }) => {
+    const result = await api('/auth/login', { method: 'POST', data: { email, password, captchaToken } });
+    saveSession(result.data);
+    setUser(result.data.user);
+    return result.data.user;
   };
 
-  const register = async ({ username, email, password, remember = true }) => {
-    await new Promise(r => setTimeout(r, 400));
-    
-    const normalizedEmail = email.trim().toLowerCase();
-    const finalUsername = (username || normalizedEmail.split('@')[0] || 'Khách ẩm thực').trim();
-
-    if (!normalizedEmail) {
-      throw new Error('Vui lòng nhập email.');
-    }
-    if (!password || password.length < 4) {
-      throw new Error('Mật khẩu cần tối thiểu 4 ký tự.');
-    }
-
-    const existingIndex = users.findIndex(u => u.email.toLowerCase() === normalizedEmail);
-    let sessionUser;
-
-    if (existingIndex >= 0) {
-      const updated = { ...users[existingIndex], username: finalUsername, password };
-      const nextUsers = [...users];
-      nextUsers[existingIndex] = updated;
-      setUsers(nextUsers);
-      sessionUser = { id: updated.id, username: updated.username, email: updated.email };
-    } else {
-      const newUser = {
-        id: `user_${Date.now()}`,
-        username: finalUsername,
-        email: normalizedEmail,
-        password,
-      };
-      setUsers(prev => [...prev, newUser]);
-      sessionUser = { id: newUser.id, username: newUser.username, email: newUser.email };
-    }
-
-    setUser(sessionUser);
-    if (remember) {
-      localStorage.setItem('viet_cuisine_user', JSON.stringify(sessionUser));
-    } else {
-      sessionStorage.setItem('viet_cuisine_user', JSON.stringify(sessionUser));
-    }
-    return sessionUser;
+  const register = async ({ username, email, password, captchaToken }) => {
+    const result = await api('/auth/register', { method: 'POST', data: { username, email, password, captchaToken } });
+    return result.data;
   };
 
   const logout = () => {
-    setUser(null);
-    try {
-      localStorage.removeItem('viet_cuisine_user');
-      sessionStorage.removeItem('viet_cuisine_user');
-    } catch {}
+    clearSession();
+    navigate('/', { replace: true });
   };
 
-  return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout, clearSession }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 }
 
-export function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+export function ProtectedRoute({ children, roles }) {
+  const { user, isAuthenticated } = useAuth();
   const location = useLocation();
-
-  if (!isAuthenticated) {
-    const target = encodeURIComponent(location.pathname + location.search);
-    return <Navigate to={`/login?redirect=${target}`} replace />;
-  }
-
+  if (!isAuthenticated) return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  if (roles?.length && !roles.includes(user.role)) return <main id="main" className="shell page-main empty-state"><h1>Không có quyền truy cập</h1><p>Tài khoản của bạn không được phép mở trang này.</p></main>;
   return children;
 }

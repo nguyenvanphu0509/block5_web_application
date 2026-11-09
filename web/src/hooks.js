@@ -55,7 +55,7 @@ export function useMotion(root, key) {
 export function NavigationEffects() {
   const location = useLocation();
   useEffect(() => {
-    if (!location.hash) { window.scrollTo(0, 0); document.querySelector('main')?.focus({ preventScroll: true }); return; }
+    if (!location.hash || location.pathname === '/reset-password') { window.scrollTo(0, 0); document.querySelector('main')?.focus({ preventScroll: true }); return; }
     const target = () => document.getElementById(location.hash.slice(1));
     if (target()) { target().scrollIntoView(); return; }
     const observer = new MutationObserver(() => { if (target()) { target().scrollIntoView(); observer.disconnect(); } });

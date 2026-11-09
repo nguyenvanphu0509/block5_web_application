@@ -2,10 +2,64 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import { createApi } from '../api/src/app.js';
+import { tokenDigest } from '../api/src/auth.js';
 import { createFixture } from './fixtures.js';
 
 const origin = 'http://localhost:5173';
 function setup(options = {}) { const fixture = createFixture(); return { ...fixture, app: createApi({ db: fixture.db, logger: { error() {} }, ...options }) }; }
+
+test('forgot password sends a private reset link and keeps the previous link on SMTP failure', async t => {
+  const { db } = createFixture();
+  const user = { id: 1, email: 'reset@example.test', tokenVersion: 0 };
+  let nextId = 2;
+  const tokens = new Map([[1, { id: 1 }]]);
+  db.$queryRaw = async (_query, email) => email === user.email ? [user] : [];
+  db.$transaction = async work => work(db);
+  db.passwordResetToken = {
+    findFirst: async ({ where }) => [...tokens.values()].find(record => record.createdAt > where.createdAt.gt),
+    async create({ data }) {
+      const record = { ...data, id: nextId++ };
+      tokens.set(record.id, record);
+      return record;
+    },
+    async deleteMany({ where }) {
+      if (typeof where.id === 'number') tokens.delete(where.id);
+      else for (const id of tokens.keys()) if (id < where.id.lt) tokens.delete(id);
+    },
+  };
+  let accepted = false;
+  const send = t.mock.fn(async () => {
+    if (!accepted) throw Object.assign(new Error('private SMTP details'), { code: 'EAUTH', responseCode: 535 });
+  });
+  const logger = { error: t.mock.fn() };
+  const app = createApi({ db, mailer: { sendPasswordResetLink: send }, logger });
+  const reset = email => request(app).post('/api/auth/forgot-password').set('Origin', origin).send({ email });
+
+  const failed = await reset(user.email).expect(200);
+  await app.locals.drainPasswordResetMail();
+  assert.doesNotMatch(failed.text, /private SMTP details/);
+  assert.deepEqual(logger.error.mock.calls[0].arguments[1], { code: 'EAUTH', responseCode: 535 });
+  assert.deepEqual([...tokens.keys()], [1]);
+
+  accepted = true;
+  const success = await reset(user.email.toUpperCase()).expect(200);
+  const unknown = await reset('unknown@example.test').expect(200);
+  await reset(user.email).expect(200);
+  await app.locals.drainPasswordResetMail();
+  assert.deepEqual(failed.body, success.body);
+  assert.deepEqual(unknown.body, success.body);
+  assert.equal(send.mock.callCount(), 2);
+  const [{ to, resetUrl }] = send.mock.calls[1].arguments;
+  assert.equal(to, user.email);
+  const link = new URL(resetUrl);
+  const token = new URLSearchParams(link.hash.slice(1)).get('token');
+  assert.equal(link.origin + link.pathname + link.search, `${origin}/reset-password`);
+  assert.match(token, /^[A-Za-z0-9_-]{43}$/);
+  assert.ok(!success.text.includes(token));
+  assert.deepEqual([...tokens.keys()], [3]);
+  assert.equal(tokens.get(3).tokenHash, tokenDigest(token));
+});
+
 for (const [resource, payload] of Object.entries({ dishes: { name: 'Món thử', price: 1000, available: false }, chefs: { name: 'Bếp thử', specialty: 'Món Việt' }, ingredients: { name: 'Muối', unit: 'g' }, restaurants: { name: 'Quán thử', cuisine: 'Việt', notableDishes: ['Phở'] } })) {
   test(`API ${resource}: CRUD, validation, missing IDs and response contract`, async () => {
     const { app } = setup(); const base = `/api/${resource}`;

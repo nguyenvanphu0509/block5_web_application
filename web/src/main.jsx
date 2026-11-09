@@ -5,6 +5,8 @@ import { api } from './api.js';
 import { useLoad, useMotion, NavigationEffects } from './hooks.js';
 import { AuthProvider, useAuth, ProtectedRoute } from './AuthContext.jsx';
 import { AuthPage } from './pages/AuthPage.jsx';
+import { ForgotPasswordPage, ResetPasswordPage } from './pages/ForgotPasswordPage.jsx';
+import { ActivatePage } from './pages/ActivatePage.jsx';
 import { Home } from './pages/Home.jsx';
 import { Catalog, PublicDetail } from './pages/Catalog.jsx';
 import { AdminList, AdminRecord } from './pages/Admin.jsx';
@@ -17,13 +19,17 @@ function App() {
   const config = useLoad('config', signal => api('/config', { signal }));
   useMotion(root, location.pathname);
 
-  const isAuthPage = ['/login', '/signup'].includes(location.pathname);
+  const isResetPage = location.pathname === '/reset-password';
+  const isAuthPage = isResetPage || ['/login', '/signup', '/forgot-password', '/activate'].includes(location.pathname);
   const dishesLink = isAuthenticated ? '/dishes' : '/login?redirect=/dishes';
 
   return (
     <div ref={root}>
       <NavigationEffects/>
-      <a className="skip-link" href="#main">Đến nội dung chính</a>
+      <a className="skip-link" href="#main" onClick={isResetPage ? event => {
+        event.preventDefault();
+        root.current?.querySelector('main')?.focus();
+      } : undefined}>Đến nội dung chính</a>
       {!isAuthPage && (
         <header className="site-header shell">
           <Link className="brand" to="/">
@@ -76,23 +82,26 @@ function App() {
         <Route path="/" element={<Home/>}/>
         <Route path="/login" element={<AuthPage initialMode="login"/>}/>
         <Route path="/signup" element={<AuthPage initialMode="signup"/>}/>
+        <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
+        <Route path="/reset-password" element={<ResetPasswordPage/>}/>
+        <Route path="/activate" element={<ActivatePage/>}/>
         <Route path="/dishes" element={<ProtectedRoute><Catalog/></ProtectedRoute>}/>
         <Route path="/dishes/:id" element={<ProtectedRoute><PublicDetail resource="dishes"/></ProtectedRoute>}/>
         {['chefs', 'ingredients', 'restaurants'].map(resource => (
           <React.Fragment key={resource}>
             <Route path={`/${resource}/:id`} element={<PublicDetail key={resource} resource={resource}/>}/>
-            <Route path={`/admin/${resource}`} element={<AdminList key={resource} resource={resource}/>}/>
-            <Route path={`/admin/${resource}/new`} element={<RecordForm key={`${resource}-new`} resource={resource}/>}/>
-            <Route path={`/admin/${resource}/:id/edit`} element={<RecordForm key={`${resource}-edit`} resource={resource} editing/>}/>
-            <Route path={`/admin/${resource}/:id/delete`} element={<AdminRecord key={`${resource}-delete`} resource={resource} deleting/>}/>
-            <Route path={`/admin/${resource}/:id`} element={<AdminRecord key={`${resource}-show`} resource={resource}/>}/>
+            <Route path={`/admin/${resource}`} element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><AdminList key={resource} resource={resource}/></ProtectedRoute>}/>
+            <Route path={`/admin/${resource}/new`} element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><RecordForm key={`${resource}-new`} resource={resource}/></ProtectedRoute>}/>
+            <Route path={`/admin/${resource}/:id/edit`} element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><RecordForm key={`${resource}-edit`} resource={resource} editing/></ProtectedRoute>}/>
+            <Route path={`/admin/${resource}/:id/delete`} element={<ProtectedRoute roles={['admin', 'editor']}><AdminRecord key={`${resource}-delete`} resource={resource} deleting/></ProtectedRoute>}/>
+            <Route path={`/admin/${resource}/:id`} element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><AdminRecord key={`${resource}-show`} resource={resource}/></ProtectedRoute>}/>
           </React.Fragment>
         ))}
-        <Route path="/admin/dishes" element={<AdminList resource="dishes"/>}/>
-        <Route path="/admin/dishes/new" element={<RecordForm resource="dishes"/>}/>
-        <Route path="/admin/dishes/:id/edit" element={<RecordForm resource="dishes" editing/>}/>
-        <Route path="/admin/dishes/:id/delete" element={<AdminRecord resource="dishes" deleting/>}/>
-        <Route path="/admin/dishes/:id" element={<AdminRecord resource="dishes"/>}/>
+        <Route path="/admin/dishes" element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><AdminList resource="dishes"/></ProtectedRoute>}/>
+        <Route path="/admin/dishes/new" element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><RecordForm resource="dishes"/></ProtectedRoute>}/>
+        <Route path="/admin/dishes/:id/edit" element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><RecordForm resource="dishes" editing/></ProtectedRoute>}/>
+        <Route path="/admin/dishes/:id/delete" element={<ProtectedRoute roles={['admin', 'editor']}><AdminRecord resource="dishes" deleting/></ProtectedRoute>}/>
+        <Route path="/admin/dishes/:id" element={<ProtectedRoute roles={['admin', 'editor', 'chef']}><AdminRecord resource="dishes"/></ProtectedRoute>}/>
         <Route path="/admin" element={<Navigate to="/admin/dishes" replace/>}/>
         <Route path="*" element={<main id="main" tabIndex="-1" className="shell page-main empty-state"><h1>Không tìm thấy trang</h1><Link to="/">Về trang chủ</Link></main>}/>
       </Routes>

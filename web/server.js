@@ -17,7 +17,8 @@ export function createWebServer() {
   app.use(express.static(dist, { index: false }));
   app.use((req, res, next) => {
     const spaResource = /^\/(?:admin\/)?(?:dishes|chefs|ingredients|restaurants)(?:\/|$)/.test(req.path);
-    if (req.method !== 'GET' || !req.accepts('html') || (/\.[^/]+$/.test(req.path) && !spaResource)) return res.status(404).end();
+    const authRoute = /^\/(?:login|signup|forgot-password|activate)$/.test(req.path);
+    if (req.method !== 'GET' || !req.accepts('html') || (/\.[^/]+$/.test(req.path) && !spaResource && !authRoute)) return res.status(404).end();
     res.set('Cache-Control', 'no-cache');
     res.sendFile(`${dist}index.html`, error => error && next(error));
   });

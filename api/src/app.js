@@ -11,12 +11,16 @@ import { normalizeSearch } from './lib/search.js';
 import { uploadImage, validateImageFile, deleteUploadedImage } from './lib/storage.js';
 import { BusinessError, TechnicalError, idValue, validRecord, checkRelations } from './validation.js';
 import { listRecords, sorts } from './catalog.js';
+import { authConfig, bearerToken, createJwt, hashPassword, randomOtp, tokenDigest, verifyJwt, verifyPassword } from './auth.js';
+import { createMailer } from './mailer.js';
+import { assertChefAssignment, assertDishAttribute, canDeleteResource, canWriteResource } from './auth/policy.js';
+import { registerPasswordResetRoutes } from './auth/password-reset.js';
 
 const includeDish = { restaurant: true, chef: true, ingredients: { include: { ingredient: true } } };
 const success = (res, data, meta) => res.json({ ok: true, data, ...(data?.items && { error: null }), ...(meta && { meta }) });
 const serialize = (record, resource) => resource === 'restaurants' ? { ...record, photo: restaurantPhoto(record) } : record;
 
-export function createApi({ db, preview = false, origin = 'http://localhost:5173', logger = console, storage = { upload: uploadImage, remove: deleteUploadedImage } } = {}) {
+export function createApi({ db, preview = false, origin = 'http://localhost:5173', logger = console, storage = { upload: uploadImage, remove: deleteUploadedImage }, auth = authConfig(), mailer = createMailer() } = {}) {
   const allowed = new URL(origin).origin;
   const app = express();
   app.disable('x-powered-by');
@@ -32,16 +36,107 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
     if (req.method === 'OPTIONS') {
       const method = req.headers['access-control-request-method'];
       const headers = String(req.headers['access-control-request-headers'] || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
-      if ((method && !['GET', 'POST', 'PATCH', 'DELETE', 'HEAD'].includes(method)) || headers.some(x => x !== 'content-type')) return next(new TechnicalError(403, 'Preflight không được phép.'));
+      if ((method && !['GET', 'POST', 'PATCH', 'DELETE', 'HEAD'].includes(method)) || headers.some(x => x !== 'content-type' && (!db?.user || x !== 'authorization'))) return next(new TechnicalError(403, 'Preflight không được phép.'));
       res.set('Access-Control-Allow-Methods', 'GET, HEAD, POST, PATCH, DELETE, OPTIONS');
-      res.set('Access-Control-Allow-Headers', 'Content-Type');
+      res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       return res.status(204).end();
     }
     next();
   });
   app.use('/images', express.static(fileURLToPath(new URL('../../web/public/images/', import.meta.url))));
   app.use(express.json({ limit: '32kb' }));
-  app.get('/api/config', (req, res) => success(res, { preview, imageChoices, imageOrigins: imageSources.split(' ').filter(x => x.startsWith('https:')), sorts: Object.fromEntries(Object.entries(sorts).map(([key, x]) => [key, x.label])) }));
+  const authEnabled = Boolean(db?.user);
+  const verifyCaptcha = async token => {
+    if (!auth.recaptchaSecret || typeof token !== 'string' || !token) return false;
+    const body = new URLSearchParams({ secret: auth.recaptchaSecret, response: token });
+    const result = await fetch('https://www.google.com/recaptcha/api/siteverify', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
+    if (!result.ok) return false;
+    const data = await result.json();
+    return data.success === true && (!data.hostname || auth.recaptchaAllowedHostnames.includes(data.hostname));
+  };
+  const authenticate = async (req, res, next) => {
+    if (!authEnabled) return next();
+    const payload = verifyJwt(bearerToken(req.headers.authorization), auth);
+    if (!payload?.sub) return res.status(401).json({ ok: false, error: { code: 'UNAUTHENTICATED', message: 'Cần đăng nhập.' } });
+    const user = await db.user.findUnique({ where: { id: Number(payload.sub) }, include: { chef: true } });
+    if (!user || user.status !== 'active' || user.tokenVersion !== payload.tokenVersion) return res.status(401).json({ ok: false, error: { code: 'UNAUTHENTICATED', message: 'Tài khoản không hợp lệ.' } });
+    req.user = user;
+    next();
+  };
+  const requireRole = (...roles) => (req, res, next) => {
+    if (!authEnabled || roles.includes(req.user?.role)) return next();
+    return res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Bạn không có quyền thực hiện thao tác này.' } });
+  };
+  app.post('/api/auth/register', async (req, res) => {
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const username = typeof req.body?.username === 'string' ? req.body.username.trim() : email.split('@')[0];
+    const password = req.body?.password;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !username || typeof password !== 'string' || password.length < 15 || password.length > 128) {
+      throw new BusinessError('VALIDATION_FAILED', 'Email, tên tài khoản hoặc mật khẩu không hợp lệ.');
+    }
+    if (!(await verifyCaptcha(req.body?.captchaToken))) {
+      throw new BusinessError('CAPTCHA_REQUIRED', 'Vui lòng xác minh CAPTCHA trước khi đăng ký.');
+    }
+    if (await db.user.findFirst({ where: { OR: [{ email }, { username }] } })) throw new BusinessError('ALREADY_EXISTS', 'Tài khoản đã tồn tại.');
+    const user = await db.user.create({ data: { email, username, passwordHash: await hashPassword(password), role: 'viewer', status: 'pending', tokenVersion: 0 } });
+    const otp = randomOtp();
+    await db.accountToken.create({ data: { userId: user.id, purpose: 'activation-otp', tokenHash: tokenDigest(otp), expiresAt: new Date(Date.now() + 15 * 60 * 1000) } });
+    if (mailer) await mailer.sendActivationOtp({ to: user.email, otp });
+    else if (!auth.exposeDevTokens) throw new TechnicalError(503, 'Dịch vụ email chưa được cấu hình.');
+    const data = { id: user.id, email: user.email, username: user.username, role: user.role };
+    if (auth.exposeDevTokens) data.otp = otp;
+    res.status(201).json({ ok: true, data });
+  });
+  app.post('/api/auth/login', async (req, res) => {
+    const identity = typeof req.body?.email === 'string' ? req.body.email.trim() : '';
+    const email = identity.toLowerCase();
+    const password = req.body?.password;
+    const user = await db.user.findFirst({ where: { OR: [{ email }, { username: identity }] } });
+    if (!user || !(await verifyPassword(password, user.passwordHash))) {
+      if (user?.status === 'active') {
+        const failedLoginAttempts = user.failedLoginAttempts + 1;
+        const captchaRequired = failedLoginAttempts >= auth.recaptchaLoginThreshold;
+        await db.user.update({ where: { id: user.id }, data: { failedLoginAttempts, captchaRequired } });
+        if (captchaRequired) return res.json({ ok: false, error: { code: 'CAPTCHA_REQUIRED', message: 'Vui lòng xác minh CAPTCHA.' } });
+      }
+      return res.json({ ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email hoặc mật khẩu không đúng.' } });
+    }
+    if (user.status === 'pending') return res.json({ ok: false, error: { code: 'ACCOUNT_NOT_ACTIVATED', message: 'Tài khoản chưa được kích hoạt.', fields: { email: user.email } } });
+    if (user.status !== 'active') return res.json({ ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email hoặc mật khẩu không đúng.' } });
+    if (user.captchaRequired && !(await verifyCaptcha(req.body?.captchaToken))) return res.json({ ok: false, error: { code: 'CAPTCHA_REQUIRED', message: 'Vui lòng xác minh CAPTCHA.' } });
+    const accessToken = createJwt({ sub: String(user.id), tokenVersion: user.tokenVersion }, auth);
+    await db.user.update({ where: { id: user.id }, data: { failedLoginAttempts: 0, captchaRequired: false } });
+    return res.json({ ok: true, data: { accessToken, user: { id: user.id, email: user.email, username: user.username, role: user.role } } });
+  });
+  app.post('/api/auth/activate', async (req, res) => {
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const otp = typeof req.body?.otp === 'string' ? req.body.otp.trim() : '';
+    const user = await db.user.findUnique({ where: { email } });
+    if (!user || user.status !== 'pending') throw new BusinessError('INVALID_OTP', 'Mã OTP không hợp lệ hoặc đã hết hạn.');
+    const record = await db.accountToken.findFirst({ where: { userId: user.id, purpose: 'activation-otp', tokenHash: tokenDigest(otp), usedAt: null, expiresAt: { gt: new Date() } } });
+    if (!record) throw new BusinessError('INVALID_OTP', 'Mã OTP không hợp lệ hoặc đã hết hạn.');
+    await db.$transaction(async tx => {
+      await tx.user.update({ where: { id: user.id }, data: { status: 'active' } });
+      await tx.accountToken.update({ where: { id: record.id }, data: { usedAt: new Date() } });
+    });
+    return res.json({ ok: true, data: { message: 'Tài khoản đã được kích hoạt.' } });
+  });
+  app.post('/api/auth/resend-activation', async (req, res) => {
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const response = { ok: true, data: { message: 'Nếu tài khoản đang chờ kích hoạt, mã OTP mới đã được gửi.' } };
+    const user = await db.user.findUnique({ where: { email } });
+    if (!user || user.status !== 'pending') return res.json(response);
+    const otp = randomOtp();
+    await db.accountToken.deleteMany({ where: { userId: user.id, purpose: 'activation-otp', usedAt: null } });
+    await db.accountToken.create({ data: { userId: user.id, purpose: 'activation-otp', tokenHash: tokenDigest(otp), expiresAt: new Date(Date.now() + 15 * 60 * 1000) } });
+    if (mailer) await mailer.sendActivationOtp({ to: user.email, otp });
+    else if (!auth.exposeDevTokens) throw new TechnicalError(503, 'Dịch vụ email chưa được cấu hình.');
+    if (auth.exposeDevTokens) response.data.otp = otp;
+    return res.json(response);
+  });
+  registerPasswordResetRoutes(app, { db, origin: allowed, mailer, logger });
+  app.get('/api/auth/me', authenticate, (req, res) => success(res, { id: req.user.id, email: req.user.email, username: req.user.username, role: req.user.role }));
+  app.get('/api/config', (req, res) => success(res, { preview, recaptchaSiteKey: auth.recaptchaSiteKey || null, imageChoices, imageOrigins: imageSources.split(' ').filter(x => x.startsWith('https:')), sorts: Object.fromEntries(Object.entries(sorts).map(([key, x]) => [key, x.label])) }));
   app.get('/api/home', async (req, res) => {
     const data = await homeData(db, req.query);
     success(res, { ...data, restaurants: data.restaurants.map(x => serialize(x, 'restaurants')) });
@@ -79,8 +174,13 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
     app.get(`${base}/:id`, async (req, res) => success(res, serialize(await find(idValue(req.params.id)), resource), { preview }));
     const write = partial => async (req, res) => {
       const id = partial ? idValue(req.params.id) : null;
-      if (partial) await find(id);
+      const current = partial ? await find(id) : null;
+      if (authEnabled && resource === 'dishes' && current) assertDishAttribute(req.user, current);
       const data = validRecord(req.body, resource, partial);
+      if (authEnabled && resource === 'dishes') {
+        assertChefAssignment(req.user, data);
+        if (req.user.role === 'chef' && !partial) data.chefId = req.user.chefId;
+      }
       if (req.file && !['dishes', 'restaurants'].includes(resource)) throw new BusinessError('VALIDATION_FAILED', 'Tài nguyên không hỗ trợ ảnh.', { imageFile: 'Không hỗ trợ ảnh.' });
       if (req.file && data.imagePath) throw new BusinessError('VALIDATION_FAILED', 'Chỉ chọn một nguồn ảnh.', { imageFile: 'Chọn file hoặc URL.' });
       try { validateImageFile(req.file); } catch (error) { throw new BusinessError('VALIDATION_FAILED', 'Ảnh không hợp lệ.', { imageFile: error.message }); }
@@ -123,11 +223,12 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
         throw error;
       }
     };
-    app.post(base, writable, parseWrite, write(false));
-    app.patch(`${base}/:id`, writable, parseWrite, write(true));
-    app.delete(`${base}/:id`, writable, async (req, res) => {
+    app.post(base, authenticate, (req, res, next) => !authEnabled || canWriteResource(req.user, resource) ? next() : res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Bạn không có quyền ghi tài nguyên này.' } }), writable, parseWrite, write(false));
+    app.patch(`${base}/:id`, authenticate, (req, res, next) => !authEnabled || canWriteResource(req.user, resource) ? next() : res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Bạn không có quyền ghi tài nguyên này.' } }), writable, parseWrite, write(true));
+    app.delete(`${base}/:id`, authenticate, (req, res, next) => !authEnabled || canDeleteResource(req.user, resource) ? next() : res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Bạn không có quyền xóa tài nguyên này.' } }), writable, async (req, res) => {
       const id = idValue(req.params.id);
-      await find(id);
+      const current = await find(id);
+      if (authEnabled && resource === 'dishes') assertDishAttribute(req.user, current);
       await model.delete({ where: { id } });
       success(res, null);
     });
@@ -135,7 +236,11 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
   app.use((req, res) => res.status(404).json({ message: 'Không tìm thấy URL API.' }));
   app.use((error, req, res, next) => {
     if (res.headersSent) return next(error);
-    if (error instanceof BusinessError || error.code === 'P2025') return res.json({ ok: false, error: { code: error.code === 'P2025' ? 'NOT_FOUND' : error.code, message: error.code === 'P2025' ? 'Bản ghi không tồn tại.' : error.message, ...(error.fields && { fields: error.fields }) } });
+    if (error instanceof BusinessError || error.code === 'P2025') {
+      const code = error.code === 'P2025' ? 'NOT_FOUND' : error.code;
+      const status = code === 'FORBIDDEN' ? 403 : 200;
+      return res.status(status).json({ ok: false, error: { code, message: error.code === 'P2025' ? 'Bản ghi không tồn tại.' : error.message, ...(error.fields && { fields: error.fields }) } });
+    }
     if (error.code === 'P2003') return res.json({ ok: false, error: { code: 'VALIDATION_FAILED', message: 'Dữ liệu liên kết đã thay đổi. Tải lại và thử lại.', fields: { _form: 'Bản ghi liên kết không còn tồn tại.' } } });
     if (error.code === 'P2002') return res.json({ ok: false, error: { code: 'ALREADY_EXISTS', message: 'Giá trị duy nhất đã tồn tại.', fields: { michelinUrl: 'Hồ sơ nguồn này đã được sử dụng.' } } });
     if (error instanceof multer.MulterError) return res.json({ ok: false, error: { code: 'VALIDATION_FAILED', message: 'File không hợp lệ.', fields: { imageFile: error.code === 'LIMIT_FILE_SIZE' ? 'Ảnh không được vượt quá 5 MB.' : 'Chỉ gửi một ảnh và một payload JSON.' } } });

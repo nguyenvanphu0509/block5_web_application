@@ -1,0 +1,3 @@
+ALTER TABLE "users" ADD COLUMN "failedLoginAttempts" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "users" ADD COLUMN "captchaRequired" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "account_tokens" ADD COLUMN "attempts" INTEGER NOT NULL DEFAULT 0;
