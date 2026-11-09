@@ -6,7 +6,10 @@
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  background: #f4f6f8;
+  background-color: #FAF8F5;
+  background-image: var(--watermark);
+  background-repeat: repeat;
+  background-size: 700px 700px;
 }
 
 .auth-card-container {
@@ -17,8 +20,8 @@
   min-height: 740px;
   background: #ffffff;
   border-radius: 36px;
-  box-shadow: 0 24px 60px rgba(22, 38, 30, 0.08), 0 4px 16px rgba(0, 0, 0, 0.02);
-  border: 1px solid #e8ece9;
+  box-shadow: 0 24px 60px rgba(20, 33, 45, 0.1), 0 4px 16px rgba(0, 0, 0, 0.02);
+  border: 1px solid #e8e3d9;
   overflow: hidden;
   position: relative;
 }
@@ -42,7 +45,7 @@
   font-family: var(--serif, "Cormorant Garamond", Georgia, serif);
   font-size: 34px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #14212D;
   text-decoration: none;
   letter-spacing: -0.02em;
   display: inline-block;
@@ -50,7 +53,7 @@
 }
 
 .auth-brand-title:hover {
-  color: var(--forest, #294c3d);
+  color: #E76F51;
 }
 
 .auth-brand-subtitle {
@@ -74,20 +77,22 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1.5px solid #1a1a1a;
+  border: 1.5px solid #14212D;
   background: #ffffff;
-  color: #1a1a1a;
+  color: #14212D;
 }
 
 .auth-toggle-btn.active {
-  background: #111111;
+  background: #14212D;
   color: #ffffff;
-  border-color: #111111;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #14212D;
+  box-shadow: 0 4px 14px rgba(20, 33, 45, 0.18);
 }
 
 .auth-toggle-btn:hover:not(.active) {
-  background: #f8fafc;
+  background: #FAF8F5;
+  color: #E76F51;
+  border-color: #E76F51;
 }
 
 /* Thông báo lỗi / thành công */
@@ -281,18 +286,18 @@
 }
 
 .auth-custom-checkbox.dark input {
-  accent-color: #18181b;
+  accent-color: #14212D;
   width: 17px;
   height: 17px;
   cursor: pointer;
 }
 
-/* Nút bấm hành động màu đen hiện đại */
+/* Nút bấm hành động màu Deep Midnight Navy với hiệu ứng Coral */
 .auth-start-btn {
   width: 100%;
   padding: 15px 24px;
   border-radius: 12px;
-  background: #111111;
+  background: #14212D;
   color: #ffffff;
   border: none;
   font-size: 16px;
@@ -300,12 +305,13 @@
   cursor: pointer;
   margin: 8px 0 16px;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 4px 14px rgba(20, 33, 45, 0.2);
 }
 
 .auth-start-btn:hover:not(:disabled) {
-  background: #27272a;
+  background: #E76F51;
   transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(231, 111, 81, 0.3);
 }
 
 .auth-start-btn:disabled {

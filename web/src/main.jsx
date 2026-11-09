@@ -91,17 +91,24 @@ function App() {
         <Route path="*" element={<main id="main" tabIndex="-1" className="shell page-main empty-state"><h1>Không tìm thấy trang</h1><Link to="/">Về trang chủ</Link></main>}/>
       </Routes>
       {!isAuthPage && (
-        <footer className="site-footer shell">
-          <Link className="brand footer-brand" to="/">ẨM THỰC VIỆT</Link>
-          <p>Một thành phố. Muôn vàn hương vị.</p>
-          <nav>
-            <Link to={dishesLink}>Thực đơn</Link>
-            <Link to="/admin">Quản trị demo</Link>
-            <a href="https://guide.michelin.com/en/vn/ho-chi-minh/restaurants" target="_blank" rel="noopener noreferrer">Nguồn Michelin ↗</a>
-          </nav>
-          <div className="footer-bottom">
-            <span>© 2026 Ẩm thực Việt · Block 7</span>
-            <span>React · REST API · Prisma · Supabase</span>
+        <footer className="site-footer">
+          <div className="shell footer-inner">
+            <div className="footer-top">
+              <div>
+                <Link className="brand footer-brand" to="/">ẨM THỰC VIỆT</Link>
+                <p className="footer-tagline">Deep Midnight Navy · Cam san hô & Vàng nghệ · Tinh hoa ẩm thực Sài Gòn</p>
+              </div>
+              <p className="footer-quote">Một thành phố. Muôn vàn hương vị.</p>
+            </div>
+            <nav className="footer-nav" aria-label="Điều hướng chân trang">
+              <Link to={dishesLink}>Thực đơn</Link>
+              <Link to="/admin">Quản trị demo</Link>
+              <a href="https://guide.michelin.com/en/vn/ho-chi-minh/restaurants" target="_blank" rel="noopener noreferrer">Nguồn Michelin ↗</a>
+            </nav>
+            <div className="footer-bottom">
+              <span>© 2026 Ẩm thực Việt · Phong cách Appetito Sài Gòn</span>
+              <span>React · REST API · Prisma · Supabase</span>
+            </div>
           </div>
         </footer>
       )}

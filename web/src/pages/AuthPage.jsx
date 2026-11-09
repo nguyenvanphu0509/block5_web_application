@@ -9,8 +9,8 @@ import './auth.css';
 const SLIDES = [
   {
     image: '/images/login.jpg',
-    title: 'Khám Phá Hương Vị, Theo Cách Của Bạn!',
-    desc: 'Trải nghiệm tinh hoa ẩm thực Sài Gòn theo phong cách riêng của bạn với những món ngon và điểm đến khó quên.',
+    title: 'Hải Sản Cao Cấp & Tinh Hoa Ẩm Thực',
+    desc: 'Trải nghiệm không gian ẩm thực tinh tế, kết nối hương vị tươi ngon và nghệ thuật gastronomy hiện đại.',
     tagline: 'Khám Phá Thế Giới Ẩm Thực,<br />Vượt Mọi Giới Hạn!',
     pill: 'Bắt đầu hành trình hôm nay!',
   },
