@@ -6,6 +6,7 @@ export class ApiError extends Error {
 export function createClient(baseUrl, fetcher = globalThis.fetch, { session = getSession, clearSession = () => setSession(null) } = {}) {
   const base = baseUrl.replace(/\/$/, '');
   return async (path, { method = 'GET', data, file, signal, auth = true } = {}) => {
+    if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//') || /[\\\r\n]/.test(path) || !new URL(`${base}/api${path}`, 'http://local.invalid').pathname.startsWith('/api/')) throw new ApiError('technical', 'Đường dẫn API không hợp lệ.');
     const headers = {}; let body;
     const accessToken = auth ? session()?.accessToken : null;
     if (accessToken) headers.Authorization = `Bearer ${accessToken}`;

@@ -33,7 +33,7 @@ try {
       const data = request.postDataJSON();
       assert.equal(data.email, 'user@example.com');
       if (data.password === 'wrong-password') {
-        status = 401; body = { ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email hoặc mật khẩu không đúng.' } };
+        status = 200; body = { ok: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email hoặc mật khẩu không đúng.' } };
       } else {
         const claims = Buffer.from(JSON.stringify({ sub: '1', role: 'user', exp: Math.floor(Date.now() / 1000) + 300 })).toString('base64url');
         body.data = { accessToken: `header.${claims}.signature`, user: { id: 1, email: data.email } };
@@ -42,8 +42,9 @@ try {
     if (path === '/api/auth/register') {
       const data = request.postDataJSON();
       assert.equal(data.password, data.confirmPassword);
-      assert.equal(data['g-recaptcha-response'], 'mock-captcha-token');
+      assert.equal(data.captcha, 'mock-captcha-token');
     }
+    if (path === '/api/auth/me') body.data = { id: 1, email: 'user@example.com', role: 'viewer' };
     if (path === '/api/dishes') {
       assert.ok(request.headers().authorization?.startsWith('Bearer '));
       status = 403; body = { ok: false, error: { code: 'FORBIDDEN', message: 'Bạn không có quyền thực hiện thao tác này.' } };

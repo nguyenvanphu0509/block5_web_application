@@ -41,6 +41,7 @@ try {
   await page.getByRole('button', { name: 'Mock CAPTCHA' }).click();
   await page.getByRole('button', { name: 'Đăng ký và nhận OTP' }).click();
   await page.getByLabel('Mã OTP').waitFor();
+  await auth.drainMail();
   assert.equal(messages.length, 1);
   await page.getByLabel('Mã OTP').fill(messages[0].text.match(/\d{6}/)[0]);
   await page.getByRole('button', { name: 'Xác minh email', exact: true }).click();
@@ -50,7 +51,7 @@ try {
   await page.waitForURL('**/dishes');
   await page.locator('.dish-card').first().waitFor();
   const token = await page.evaluate(() => JSON.parse(localStorage.getItem('viet_cuisine_session')).accessToken);
-  assert.equal(auth.jwt.verify(token).role, 'viewer');
+  assert.equal((await auth.jwt.verify(token)).role, 'viewer');
   const avatar = page.getByRole('button', { name: 'Tài khoản của API User', exact: true });
   assert.equal(await avatar.textContent(), 'A');
   await avatar.click();
@@ -70,19 +71,22 @@ try {
   await page.keyboard.press('Escape');
   await page.setViewportSize({ width: 1280, height: 900 });
 
-  await page.goto('http://localhost:5179/admin/dishes/1/delete');
-  await page.getByRole('button', { name: 'Xóa bản ghi', exact: true }).click();
-  await page.getByText('Bạn không có quyền thực hiện thao tác này.').waitFor();
-  // Verify directly through the SPA origin: no auth DB reads, even when offline.
+  await page.goto('http://localhost:5179/admin/dishes/1/edit');
+  await page.locator('#name').fill('Viewer may update');
+  await page.getByRole('button', { name: /Lưu thay đổi/ }).click();
+  await page.getByRole('heading', { name: 'Viewer may update', exact: true }).waitFor();
+  // Crypto verify is DB-free; /me loads the account and reports DB outages as technical errors.
   const query = pool.query.bind(pool), connect = pool.connect.bind(pool);
   let calls = 0;
   pool.query = async () => { calls++; throw new Error('DB offline'); };
   pool.connect = async () => { calls++; throw new Error('DB offline'); };
+  assert.ok(await auth.jwt.verify(token)); assert.equal(calls, 0);
   const status = await page.evaluate(async token => (await fetch('http://localhost:3189/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })).status, token);
-  assert.equal(status, 200); assert.equal(calls, 0);
+  assert.equal(status, 500); assert.equal(calls, 1);
   pool.query = query; pool.connect = connect;
   await page.getByRole('button', { name: /^Tài khoản của / }).click();
   await page.getByRole('button', { name: 'Đăng xuất', exact: true }).click();
+  await page.goto('http://localhost:5179/admin/dishes');
   await page.waitForURL('**/login?redirect=*');
   await page.getByText('Quên mật khẩu?', { exact: true }).click();
   await page.getByLabel('Email', { exact: true }).fill('browser@example.com');
@@ -101,7 +105,7 @@ try {
   await page.waitForURL('**/dishes');
   await page.locator('.dish-card').first().waitFor();
   assert.deepEqual(errors, []);
-  console.log('SPA/API integration passed: signup, CAPTCHA, OTP, real login/token, catalog, permissions, zero-DB JWT verification, forgot/reset, new password login.');
+  console.log('SPA/API integration passed: signup, CAPTCHA, OTP, real login/token, public catalog, active Viewer CRUD, zero-DB crypto verification, forgot/reset, new password login.');
 } finally {
   await browser?.close(); await auth.drainMail();
   await new Promise(resolve => server.close(resolve)); await pool.end();

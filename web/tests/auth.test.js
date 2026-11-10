@@ -78,3 +78,7 @@ test('remember choice switches stores and removes demo credentials', () => {
   assert.ok(sessionStorage.getItem('viet_cuisine_session'));
   setSession(null); assert.equal(getSession(), null);
 });
+test('API client rejects escaping paths before fetching or reading credentials', async () => {
+  const api = createClient('http://example.test', () => { throw new Error('must not fetch'); }, { session: () => { throw new Error('must not read token'); } });
+  for (const path of ['https://other.test', '//other.test', '/../private', '/%2e%2e/private', '/\\other.test']) await assert.rejects(api(path), /Đường dẫn API không hợp lệ/);
+});

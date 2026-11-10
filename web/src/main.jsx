@@ -19,7 +19,7 @@ function App() {
   useMotion(root, location.pathname);
 
   const isAuthPage = ['/login', '/signup', '/register', '/activate', '/forgot', '/reset'].includes(location.pathname);
-  const dishesLink = isAuthenticated ? '/dishes' : '/login?redirect=/dishes';
+  const dishesLink = '/dishes';
 
   return (
     <div ref={root}>
@@ -69,9 +69,9 @@ function App() {
         <Route path="/signup" element={<AuthPage initialMode="signup"/>}/>
         <Route path="/register" element={<AuthPage initialMode="signup"/>}/>
         {['activate', 'forgot', 'reset'].map(mode => <Route key={mode} path={`/${mode}`} element={<AuthPage initialMode={mode}/>}/>)}
-        <Route element={<ProtectedRoute/>}>
         <Route path="/dishes" element={<Catalog/>}/>
         <Route path="/dishes/:id" element={<PublicDetail resource="dishes"/>}/>
+        <Route element={<ProtectedRoute/>}>
         {['chefs', 'ingredients', 'restaurants'].map(resource => (
           <React.Fragment key={resource}>
             <Route path={`/${resource}/:id`} element={<PublicDetail key={resource} resource={resource}/>}/>

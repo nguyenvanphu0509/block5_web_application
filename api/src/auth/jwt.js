@@ -1,46 +1,39 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { SignJWT, jwtVerify } from 'jose';
 
-// Deliberately has no database/store dependency. Verification is entirely local.
+// Cryptographic verification has no database dependency. Account loading is separate.
 export function createJwt({ secret, issuer = 'block6-api', audience = 'block6-spa', ttlSeconds = 900, now = () => Date.now() } = {}) {
   if (typeof secret !== 'string' || Buffer.byteLength(secret) < 32) throw new Error('JWT_SECRET must contain at least 32 bytes');
   if (!Number.isInteger(ttlSeconds) || ttlSeconds < 60 || ttlSeconds > 900) throw new Error('JWT TTL must be 60–900 seconds');
-  const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
-  const signature = value => createHmac('sha256', secret).update(value).digest();
-  const roles = ['viewer', 'editor', 'admin'];
-  function sign(user) {
-    if (!user?.id || !roles.includes(user.role)) throw new Error('Invalid JWT subject/role');
+  const key = new TextEncoder().encode(secret);
+  async function sign(user) {
+    if (!/^[1-9][0-9]*$/.test(String(user?.id))) throw new Error('Invalid JWT subject');
     const iat = Math.floor(now() / 1000);
-    const payload = { sub: String(user.id), role: user.role, iss: issuer, aud: audience, iat, exp: iat + ttlSeconds };
-    const unsigned = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode(payload)}`;
-    return `${unsigned}.${signature(unsigned).toString('base64url')}`;
+    return new SignJWT({ role: user.role }).setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+      .setSubject(String(user.id)).setIssuer(issuer).setAudience(audience).setIssuedAt(iat).setExpirationTime(iat + ttlSeconds).sign(key);
   }
-  function verify(token) {
-    try {
-      if (typeof token !== 'string' || token.length > 4096) return null;
-      const parts = token.split('.');
-      if (parts.length !== 3 || parts.some(part => !/^[A-Za-z0-9_-]+$/.test(part))) return null;
-      const [header, payload, signed] = parts;
-      const actual = Buffer.from(signed, 'base64url'), expected = signature(`${header}.${payload}`);
-      if (actual.toString('base64url') !== signed || actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
-      const meta = JSON.parse(Buffer.from(header, 'base64url').toString('utf8'));
-      if (meta.alg !== 'HS256' || meta.typ !== 'JWT' || Object.keys(meta).some(key => !['alg', 'typ'].includes(key))) return null;
-      const claims = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-      const time = Math.floor(now() / 1000);
-      if (!claims || typeof claims.sub !== 'string' || !/^[1-9][0-9]*$/.test(claims.sub) || !roles.includes(claims.role)
-        || claims.iss !== issuer || claims.aud !== audience || !Number.isInteger(claims.exp) || !Number.isInteger(claims.iat)
-        || claims.exp <= time || claims.iat > time || claims.exp <= claims.iat || claims.exp - claims.iat > ttlSeconds
-        || (claims.nbf !== undefined && (!Number.isInteger(claims.nbf) || claims.nbf > time))) return null;
-      return claims;
-    } catch { return null; }
+  async function verified(token) {
+    if (typeof token !== 'string' || token.length > 4096) throw new Error('Invalid token');
+    const { payload, protectedHeader } = await jwtVerify(token, key, {
+      algorithms: ['HS256'], issuer, audience, typ: 'JWT', currentDate: new Date(now()), requiredClaims: ['sub', 'exp', 'iat'],
+    });
+    if (Object.keys(protectedHeader).some(key => !['alg', 'typ'].includes(key)) || typeof payload.sub !== 'string'
+      || !/^[1-9][0-9]*$/.test(payload.sub) || Number(payload.sub) > 2147483647
+      || !Number.isInteger(payload.exp) || !Number.isInteger(payload.iat) || payload.iat > Math.floor(now() / 1000)
+      || payload.exp <= payload.iat || payload.exp - payload.iat > ttlSeconds) throw new Error('Invalid claims');
+    return payload;
   }
-  function requireAuth(req, res, next) {
+  async function verify(token) { try { return await verified(token); } catch { return null; } }
+  async function requireAuth(req, res, next) {
     res.set('Cache-Control', 'no-store');
-    const match = /^Bearer ([A-Za-z0-9_.-]+)$/i.exec(req.headers.authorization || '');
-    const claims = match && verify(match[1]);
-    if (!claims) return res.set('WWW-Authenticate', 'Bearer').status(401).json({ ok: false, error: { code: 'UNAUTHORIZED', message: 'Token không hợp lệ hoặc hết hạn. Vui lòng đăng nhập lại.' } });
-    req.auth = claims; next();
+    try {
+      const match = /^Bearer ([A-Za-z0-9_.-]+)$/i.exec(req.headers.authorization || '');
+      if (!match) throw new Error('Missing Bearer');
+      req.auth = await verified(match[1]);
+    } catch (error) {
+      const code = error.code === 'ERR_JWT_EXPIRED' ? 'TOKEN_EXPIRED' : 'UNAUTHENTICATED';
+      return res.set('WWW-Authenticate', 'Bearer').status(401).json({ ok: false, error: { code, message: 'Token không hợp lệ hoặc hết hạn. Vui lòng đăng nhập lại.' } });
+    }
+    return next();
   }
-  const requireRole = (...allowed) => (req, res, next) => allowed.includes(req.auth?.role) ? next()
-    : res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Bạn không có quyền thực hiện thao tác này.' } });
-  return { sign, verify, requireAuth, requireRole, ttlSeconds };
+  return { sign, verify, requireAuth, ttlSeconds };
 }

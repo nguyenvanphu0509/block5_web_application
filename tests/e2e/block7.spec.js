@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import { mkdir, writeFile, copyFile } from 'node:fs/promises';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(session => localStorage.setItem('viet_cuisine_session', JSON.stringify(session)), createAdminSession());
+  await page.addInitScript(session => localStorage.setItem('viet_cuisine_session', JSON.stringify(session)), await createAdminSession());
   await page.route('https://**', route => route.abort());
   const responses = []; page.__evidence = responses;
   page.on('response', async res => {

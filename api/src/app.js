@@ -45,8 +45,6 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
   if (auth?.router) app.use('/api/auth', auth.router);
   const authUnavailable = (req, res) => res.status(503).json({ ok: false, error: { code: 'AUTH_UNAVAILABLE', message: 'Dịch vụ xác thực chưa sẵn sàng.' } });
   const requireAuth = auth?.requireAuth || authUnavailable;
-  const writePermission = auth?.requireRole?.('admin', 'editor') || authUnavailable;
-  const deletePermission = auth?.requireRole?.('admin') || authUnavailable;
   app.get('/api/config', (req, res) => success(res, { preview, imageChoices, imageOrigins: imageSources.split(' ').filter(x => x.startsWith('https:')), sorts: Object.fromEntries(Object.entries(sorts).map(([key, x]) => [key, x.label])) }));
   app.get('/api/home', async (req, res) => {
     const data = await homeData(db, req.query);
@@ -78,11 +76,12 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
       if (!record) throw new BusinessError('NOT_FOUND', 'Bản ghi không tồn tại hoặc đã bị xóa.');
       return record;
     };
-    app.get(base, requireAuth, async (req, res) => {
+    const readAuth = resource === 'dishes' ? (req, res, next) => next() : requireAuth;
+    app.get(base, readAuth, async (req, res) => {
       const { data, meta } = await listRecords(db, resource, model, req.query);
       success(res, resource === 'dishes' ? data : data.map(x => serialize(x, resource)), { ...meta, preview });
     });
-    app.get(`${base}/:id`, requireAuth, async (req, res) => success(res, serialize(await find(idValue(req.params.id)), resource), { preview }));
+    app.get(`${base}/:id`, readAuth, async (req, res) => success(res, serialize(await find(idValue(req.params.id)), resource), { preview }));
     const write = partial => async (req, res) => {
       const id = partial ? idValue(req.params.id) : null;
       if (partial) await find(id);
@@ -129,9 +128,9 @@ export function createApi({ db, preview = false, origin = 'http://localhost:5173
         throw error;
       }
     };
-    app.post(base, requireAuth, writePermission, writable, parseWrite, write(false));
-    app.patch(`${base}/:id`, requireAuth, writePermission, writable, parseWrite, write(true));
-    app.delete(`${base}/:id`, requireAuth, deletePermission, writable, async (req, res) => {
+    app.post(base, requireAuth, writable, parseWrite, write(false));
+    app.patch(`${base}/:id`, requireAuth, writable, parseWrite, write(true));
+    app.delete(`${base}/:id`, requireAuth, writable, async (req, res) => {
       const id = idValue(req.params.id);
       await find(id);
       await model.delete({ where: { id } });

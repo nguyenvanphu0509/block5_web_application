@@ -1,3 +1,4 @@
+import { createLimits, loginNeedsCaptcha } from '../../../shared/server/auth/limits.js';
 import {createMailSender,createMailTasks} from './mail.js';
 import {createActivationDelivery} from './activation.js';
 import './config.js';
@@ -19,9 +20,8 @@ export function createAuth({schema='block8_auth',siteOrigin=origin,sessionStore,
  const middleware=session({name:'sid',secret:secret(),store:sessionStore || new Store({pool,schemaName:schema,tableName:'session',createTableIfMissing:false,disableTouch:true}),resave:false,saveUninitialized:false,cookie:{httpOnly:true,sameSite:'lax',secure:siteOrigin.startsWith('https:'),maxAge:8*3600000}});
  const router=Router();
  async function tx(fn){const c=await pool.connect();try{await c.query('BEGIN');const v=await fn({query:(s,p)=>c.query(sql(s),p)});await c.query('COMMIT');return v;}catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}}
- async function count(key,increment=false){if(increment)await q(`INSERT INTO block8_auth.limits(key,count) VALUES($1,1) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN block8_auth.limits.started_at<now()-interval '15 minutes' THEN 1 ELSE block8_auth.limits.count+1 END,started_at=CASE WHEN block8_auth.limits.started_at<now()-interval '15 minutes' THEN now() ELSE block8_auth.limits.started_at END`,[key]);const r=(await q("SELECT count,locked_until FROM block8_auth.limits WHERE key=$1 AND (started_at>now()-interval '15 minutes' OR locked_until>now())",[key])).rows[0];return r?.count||0;}
+ const {count}=createLimits(q);
  async function quota(req,purpose,e,a,b){const x=await count(`${purpose}:email:${e}`,true),y=await count(`${purpose}:ip:${req.ip}`,true);return x>a||y>b;}
- const loginNeedsCaptcha=(emailFailures,ipFailures)=>emailFailures>=3||ipFailures>=10;
  const send=createMailSender(mailer,{from:process.env.SMTP_FROM,logger:mailLogger});
  const deliverActivation=createActivationDelivery({transaction:tx,send});
  const mailTasks=createMailTasks(mailLogger);

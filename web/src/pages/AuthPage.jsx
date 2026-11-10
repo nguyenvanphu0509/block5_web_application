@@ -109,7 +109,7 @@ export function AuthPage({ initialMode = 'login' }) {
         await login({ email: normalizedEmail, password, remember: rememberMe, captchaToken });
         navigate(redirectPath, { replace: true });
       } else if (mode === 'signup-confirm') {
-        await register({ name: username.trim(), email: normalizedEmail, password, confirmPassword, 'g-recaptcha-response': captchaToken });
+        await register({ name: username.trim(), email: normalizedEmail, password, confirmPassword, captcha: captchaToken });
         setPassword(''); setConfirmPassword(''); setMode('activate');
         setResendUntil(Date.now() + 60000);
         setSuccessMsg('Yêu cầu đăng ký đã được xử lý. Nhập OTP 6 chữ số gửi đến email; mã có hiệu lực 10 phút.');
@@ -126,6 +126,7 @@ export function AuthPage({ initialMode = 'login' }) {
       }
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      if (err.code === 'ACCOUNT_NOT_ACTIVATED') setMode('activate');
       if (err.captchaRequired || err.code === 'CAPTCHA_REQUIRED') setCaptchaRequired(true);
       if (err.retryAfter && mode === 'activate') setResendUntil(Date.now() + err.retryAfter * 1000);
     } finally {

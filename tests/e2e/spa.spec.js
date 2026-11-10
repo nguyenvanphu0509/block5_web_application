@@ -2,7 +2,7 @@ import { createAdminSession } from '../auth-fixture.js';
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(session => localStorage.setItem('viet_cuisine_session', JSON.stringify(session)), createAdminSession());
+  await page.addInitScript(session => localStorage.setItem('viet_cuisine_session', JSON.stringify(session)), await createAdminSession());
   page.__reactErrors = [];
   page.on('console', message => { if (message.type() === 'error' && /controlled|unique.*key|React.*error/i.test(message.text())) page.__reactErrors.push(message.text()); });
   await page.route('https://**', route => route.abort());
@@ -173,7 +173,7 @@ test('preview locks mutations and stale detail requests cannot overwrite a new r
   const waiting = new Promise(resolve => { release = resolve; });
   await page.route('http://localhost:3100/api/dishes/1', async route => { const response = await route.fetch(); await waiting; await route.fulfill({ response }).catch(() => {}); });
   await page.goto('/dishes/1'); await expect(page.getByText('Đang tải…')).toBeVisible();
-  await page.getByRole('link', { name: 'Món ăn', exact: true }).click();
+  await page.getByRole('link', { name: '← Trở lại khám phá', exact: true }).click();
   await page.locator('.dish-card h2 a').nth(1).click();
   await expect(page).toHaveURL(/\/dishes\/2$/); await expect(page.getByRole('heading', { name: 'Cơm tấm Sài Gòn', exact: true })).toBeVisible();
   release();

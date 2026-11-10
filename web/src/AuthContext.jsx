@@ -6,6 +6,20 @@ import { getSession, setSession, subscribeSession, reloadSession, validSession, 
 const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [session, update] = useState(getSession);
+  const [checkedToken, setCheckedToken] = useState(null);
+  const [sessionError, setSessionError] = useState(null);
+  const [revision, setRevision] = useState(0);
+  const [currentUser, setCurrentUser] = useState(null);
+  useEffect(() => {
+    const token = session?.accessToken;
+    if (!token) { setCheckedToken(null); setCurrentUser(null); return; }
+    const controller = new AbortController();
+    setSessionError(null);
+    api('/auth/me', { signal: controller.signal }).then(result => {
+      if (!controller.signal.aborted && getSession()?.accessToken === token) { setCurrentUser(result.data); setCheckedToken(token); }
+    }).catch(error => { if (!controller.signal.aborted) setSessionError(error); });
+    return () => controller.abort();
+  }, [session?.accessToken, revision]);
   useEffect(() => {
     const unsubscribe = subscribeSession(() => update(getSession()));
     const synchronize = event => { if (event.key === 'viet_cuisine_session' || event.key === null) reloadSession(); };
@@ -25,7 +39,7 @@ export function AuthProvider({ children }) {
     return () => { clearInterval(timer); window.removeEventListener('focus', expire); };
   }, [session]);
   const login = async ({ email, password, remember = false, captchaToken }) => {
-    const result = await api('/auth/login', { method: 'POST', auth: false, data: { email: email.trim().toLowerCase(), password, 'g-recaptcha-response': captchaToken } });
+    const result = await api('/auth/login', { method: 'POST', auth: false, data: { email: email.trim().toLowerCase(), password, captcha: captchaToken } });
     if (!validSession(result.data)) throw new ApiError('technical', 'API chưa trả access token hợp lệ.');
     const claims = tokenClaims(result.data.accessToken);
     const user = result.data.user || { id: claims.sub, email: email.trim().toLowerCase(), role: claims.role };
@@ -34,7 +48,7 @@ export function AuthProvider({ children }) {
   };
   const register = data => api('/auth/register', { method: 'POST', auth: false, data });
   const logout = () => setSession(null);
-  return <AuthContext.Provider value={{ user: session?.user, isAuthenticated: !!session && validSession(session), login, register, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user: checkedToken === session?.accessToken ? currentUser : session?.user, isAuthenticated: !!session && validSession(session) && checkedToken === session.accessToken, checking: !!session && checkedToken !== session.accessToken, sessionError, retrySession: () => setRevision(value => value + 1), login, register, logout }}>{children}</AuthContext.Provider>;
 }
 export function useAuth() {
   const context = useContext(AuthContext);
@@ -42,8 +56,9 @@ export function useAuth() {
   return context;
 }
 export function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, checking, sessionError, retrySession } = useAuth();
   const location = useLocation();
+  if (checking) return <main id="main" className="shell page-main" role={sessionError ? 'alert' : 'status'}>{sessionError ? <><p>{sessionError.message}</p><button type="button" className="button" onClick={retrySession}>Thử lại</button></> : 'Đang kiểm tra phiên…'}</main>;
   if (!isAuthenticated) return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   return children || <Outlet/>;
 }
